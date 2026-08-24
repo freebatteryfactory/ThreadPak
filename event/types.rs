@@ -13,7 +13,8 @@
 //! body is a visible open seam, never a placeholder API.
 //!
 //! Cross-home types are referenced as bare names in field position, owners
-//! noted here — `RawWallObservation` (port), `SchemaId` and `SchemaVersion`
+//! noted here — `WallObservation` (port; the admitted observation enclosure —
+//! raw readings never reach this owner), `SchemaId` and `SchemaVersion`
 //! (core schema) — never as `crate::` paths; the dependency probe seats the
 //! real imports. Application payload value roles and knowledge axes remain
 //! doc-referenced until their owners force fields.
@@ -474,15 +475,33 @@ pub struct RegionSealWitness {
     seal_cut: Cut,
 }
 
+/// The declared membership geometry of one region — the coordinate owner's
+/// region-membership role, carried here as split evidence. Geometry is a
+/// declared fact about which addresses a region covers; it is never write
+/// authority and never physical placement.
+pub struct RegionGeometry {
+    /* declared membership geometry over coordinate axes; representation
+     * closes with the region-geometry contract */
+}
+
+/// One proposed child of a split: its identity together with its declared
+/// geometry. Identity alone can prove nothing about disjointness or
+/// coverage — the geometry is the evidence the split proof judges.
+pub struct ChildRegionDeclaration {
+    region: AuthorityRegionId,
+    geometry: RegionGeometry,
+}
+
 /// The spatial proof of one lawful split: children pairwise disjoint, union
 /// equal to the complete parent region, no gap, no overlap. Inherited events
 /// retain their identities and original positions; children own only fresh
 /// suffixes under fresh epochs.
 pub struct SplitWitness {
     parent: RegionSealWitness,
-    children: Vec<AuthorityRegionId>,
-    /* the pairwise-disjointness and exact-coverage proof over `children`;
-     * representation closes with the region-geometry contract */
+    children: Vec<ChildRegionDeclaration>,
+    /* the pairwise-disjointness and exact-coverage proof over the children's
+     * declared geometry against the parent's; representation closes with the
+     * region-geometry contract */
 }
 
 /// Explicit evidence relating positions across an authority succession. A
@@ -512,17 +531,52 @@ pub struct RoutingPublication {
      * contract — they report, never grant */
 }
 
-/// Authorizes participation in one partition lifecycle (seal, split,
-/// succession, activation, routing publication) for one region family.
-/// Role-specific like every grant here; owner-derived completion — the
-/// partition operations exist, so their authority role is forced (see
-/// README Escalations for the naming note).
+/// The closed roster of partition operations a `PartitionGrant` may be
+/// scoped to. Pure geometry and succession proofs appear nowhere here —
+/// proofs consume evidence, never authority. `RetireParent`'s operation
+/// arrives with its consumer (the succession witness's stale-parent leg);
+/// the authority role is declared with the roster so a grant can be scoped
+/// to it from the first mint.
+pub enum PartitionOperation {
+    /// Seal one region's writable epoch at an exact Cut.
+    Seal,
+    /// Activate one fresh epoch on a successor region.
+    ActivateSuccessor,
+    /// Publish routing for a succession — last, after every activation.
+    PublishRouting,
+    /// Retire a stale parent: reachable for reads, never again a writer.
+    RetireParent,
+}
+
+/// The closed member set of partition operations one grant covers.
+pub struct PartitionOperationSet {
+    /* closed membership over `PartitionOperation`; representation closes
+     * with the guard pass */
+}
+
+/// Generation of one partition grant, for expected-generation validation of
+/// authority state changes. A grant never survives its declared generation.
+pub struct PartitionGrantGeneration {
+    /* closes with the identity profile */
+}
+
+/// Authorizes an explicit set of partition operations for one region family
+/// (owner-ruled 2026-08-24: spelling kept, authority operation-scoped).
+/// Role-specific like every grant here. Pure geometry and cut proofs need
+/// evidence, never this grant; admitting or publishing a partition
+/// transition requires the grant scoped to that exact operation.
 pub struct PartitionGrant {
-    /* scope, generation, and attenuation close with the guard pass */
+    operations: PartitionOperationSet,
+    generation: PartitionGrantGeneration,
+    /* region-family scope and attenuation close with the guard pass */
 }
 
 /// The typed refusal family of partition operations.
 pub enum PartitionRefusal {
+    /// The claimed seal boundary is not the region's current accepted
+    /// boundary — sealing behind it would orphan accepted material; sealing
+    /// ahead of it would seal history that does not exist.
+    StaleSealCut,
     /// The parent epoch is not sealed at the claimed Cut.
     ParentNotSealed,
     /// Two proposed child regions overlap.
@@ -533,7 +587,8 @@ pub enum PartitionRefusal {
     SuccessionEvidenceMissing,
     /// Routing publication was attempted before child activation.
     RoutingBeforeActivation,
-    /// The caller's grant does not cover this region family.
+    /// The caller's grant does not cover this region family, or is not
+    /// scoped to the partition operation being admitted.
     WrongAuthority,
     /* the roster closes with the region-geometry contract */
 }
