@@ -15,7 +15,9 @@ Co-seating is a dependency-home fact, not a merger of meaning. No type, operatio
 
 ## Turn and Stitch
 
-A **Turn** is one logical transition: selected runnable logical work, frozen typed inputs at exact Cuts, one admitted program invocation, a semantic result or refusal, event proposals, effect intents, and a checkpoint consequence. `TurnId` is a derived identity over the Turn's identity inputs; replay reconstructs the same Turn where lawful, and a changed identity input is a different Turn.
+A **Turn** is one logical transition: selected runnable logical work, frozen typed inputs at exact Cuts, one admitted program invocation, a semantic result or refusal, event proposals, effect proposals, and a checkpoint consequence. The `Turn` record is the logical-book entry carrying exactly those bindings. `TurnId` is a derived identity over the Turn's identity-bearing inputs; replay reconstructs the same Turn where lawful, and a changed identity input is a different Turn. Four lineage identities never substitute: `LogicalOperationId` (the application-meaningful unit), `TurnId` (one logical transition), `EffectIntentId` (one admitted external intent), `AttemptId` (one physical effort).
+
+Stitch consumes one member of the typed-observation family `StitchStimulus`. The family's roster closes with the stimulus-algebra seam; a wake is awareness and is never a member.
 
 **Stitch** is the runtime transition — the pure operation that advances one logical process:
 
@@ -23,7 +25,7 @@ A **Turn** is one logical transition: selected runnable logical work, frozen typ
 prior admitted state
 + one typed observation
 + explicit context
-→ StitchAdvance (next state, event proposals, effect intents, work, explanation)
+→ StitchAdvance (next state, event proposals, effect proposals, work, explanation)
 | StitchRefusal
 ```
 
@@ -105,7 +107,7 @@ Rebasing derives a `LiveDeadline` from policy, a monotonic observation, and cons
 
 Accepted checkpoint-advance records own the authority to skip completed logical work. Law of this owner:
 
-- Checkpoint records live in **runtime-owned checkpoint authority regions**, keyed by process, subscription, or delivery identity. They reference domain Cuts and never inhabit or mutate observed domain regions.
+- Checkpoint records live in **runtime-owned checkpoint authority regions**, keyed by a role-branded `CheckpointSubject` — process, subscription, or delivery identity as typed variants, so a process checkpoint can never substitute for a subscription checkpoint merely because the identities share a width. They reference domain Cuts and never inhabit or mutate observed domain regions.
 - One writer per checkpoint region and epoch. This means one active semantic authority — never one thread, task, or file per process.
 - A `CheckpointAdvanceProposal` is admissible only when every skip prerequisite exists: expected predecessor, current generation, required output and publication receipts, and every outstanding effect and reconciliation obligation accounted. Advancing before prerequisites is unrepresentable or refuses.
 - `CurrentCheckpoint` is a compact derived image, rebuildable from accepted advances. It is never the authority.
@@ -128,9 +130,13 @@ Physical book   Attempt, grants, reservations, requests and responses,
 
 Replay preserves the logical Turn where lawful and always mints fresh Attempts. Physical failure never erases accepted logical intent. Physical success never becomes domain success. Retry legality is a logical-book decision made by the runtime under the operation's recovery contract — never by Bvisor, never by a supervisor merely observing a death, never by a reconnecting carrier.
 
+## Runtime record publication
+
+This owner's durable records — admitted `EffectIntent`s, accepted checkpoint advances, sealed `AttemptReport`s where a profile requires durability, and reconciliation records — publish through a **runtime-declared storage port family**, stated in the port owner's contract grammar exactly as the event owner declares its own storage family. The behavioral contract mirrors the event storage law: append against an expected predecessor, exact read-back of the published records, crash recovery bounded by the committed boundary, and idempotent reopen. One qualified physical adapter may realize this family and the event owner's family on one backend; the semantic owners never merge, and an adapter's success claim never substitutes for a receipt it did not establish. Nothing here publishes domain history: these records reference domain Cuts and never inhabit domain regions.
+
 ## Reconciliation
 
-Reconciliation is a pure bounded conclusion over append-only evidence: the effect's recovery contract, the durable EffectIntent, every known AttemptReport, acknowledgements, outcome-query evidence, and current policy, yielding a current lawful conclusion and next action. It never rewrites an earlier Attempt, observation, or external event; later evidence supersedes the conclusion while the historical record stands. Lawful next actions include observing, waiting, one fresh lawful Attempt, a separately admitted compensating effect, an authorized human decision, accepting a durable partial outcome where the contract permits, or terminating unresolved. Repeated `OutcomeUnknown` is a stable honest result — inconvenience is not permission to relabel it failure or to retry without legality.
+Reconciliation is a pure bounded conclusion over append-only evidence: the effect's recovery contract, the durable EffectIntent, every known AttemptReport, acknowledgements, outcome-query evidence, and current policy, yielding a current lawful conclusion and next action. Whether reconciliation is owed and how it concluded are two facts that never share one enum: `ReconciliationLifecycle` answers *whether* (not required, outstanding, complete), and `ReconciliationDisposition` — carried only inside completion — answers *how*, so a disposition-without-completion is unrepresentable. It never rewrites an earlier Attempt, observation, or external event; later evidence supersedes the conclusion while the historical record stands. Lawful next actions include observing, waiting, one fresh lawful Attempt, a separately admitted compensating effect, an authorized human decision, accepting a durable partial outcome where the contract permits, or terminating unresolved. Repeated `OutcomeUnknown` is a stable honest result — inconvenience is not permission to relabel it failure or to retry without legality.
 
 ## JoinAll
 
@@ -154,10 +160,16 @@ Bvisor is the physical-admission membrane around one admitted logical invocation
 - **AdmissionPlan.** Physical admission closes the validated image and operation, the Turn relationship, exact source cuts and generations, required ports and grants, authority generations and revocation posture, semantic and physical bounds, target profile, clock domains, the absolute deadline, reservation dimensions, and report requirements.
 - **All-or-release acquisition.** Reservations are affine physical custody: Attempt-bound, not `Clone`, released exactly once, never reusable by a retry. Partial acquisition releases everything acquired and refuses; no partially admitted Attempt and no leaked reservation exists.
 - **No Attempt before admission.** A failure before minting is an admission refusal — no `AttemptId` exists and no report implies one. A mechanism-start failure after minting consumes the live Attempt, releases its custody, and seals a terminal `AttemptReport` recording the start failure; the runtime alone decides whether a fresh Attempt is lawful.
-- **Attempt custody is typestate.** Planned invocation, admitted Attempt, running Attempt, live suspended Attempt, terminal Attempt: each transition consumes the prior live value. A persisted description of an Attempt's state is data; decoding it never resurrects live custody.
+- **Attempt custody is typestate.** Planned invocation, admitted Attempt, running Attempt, live suspended Attempt, terminal Attempt: each transition consumes the prior live value. A persisted description of an Attempt's state is data; decoding it never resurrects live custody. Live custody and one-shot authority types are never `Clone`, never serialized, and never accidentally `Send` or `Sync` — an auto-derived crossing would move live authority between workers without an admission decision, so custody interiors are chosen at the guard pass to make that crossing unrepresentable.
 - **Response binding.** Every port request binds the AttemptId, request identity, port family and operation, expected response family, grant identity and generation, remaining bounds, the absolute deadline, and the continuation identity. A response must match every correctness-bearing coordinate; matching bytes are not enough. Response authority is one-shot. A late response for a dead Attempt may remain authentic physical evidence; it resumes nothing.
 - **AttemptReport.** Sealed physical facts only: identity and lineage, selected mechanism profile, installed grants, reservation and consumption evidence, requests and validated responses, cancellation and deadline observations, exits, commit knowledge where a backend establishes it. It never claims domain success, retry legality, compensation, checkpoint advancement, or semantic correctness.
 - **Cancellation.** Bvisor may attempt physical cancellation under the selected profile and reports what it observed. A cancellation observation does not prove the external consequence never occurred.
+
+## Bounds and profiles
+
+Owner-local bounds, consumed by the operations that declare them; numeric values and paved profiles live in `depot/runtime.md`, and every operation receives its profile or budget as an explicit argument — never through an ambient lookup (`depot/README.md`, "Rows are passed, never fetched"): `AttemptLimit`, `ReservationLimit`, `PortRequestLimit`, `PortResponseLimit`, `DeferredInputLimit`, `DeferredInputByteLimit`, `DeferredInputAgeLimit`, `DeferredInputReconsiderationBudget`, `CheckpointLagLimit`, `PumpWorkBudget`, `ReconciliationStepBudget`, `JoinBranchLimit`, and the PakVM four (`FrameLimit`, `ValueByteLimit`, `ScratchByteLimit`, `ContinuationByteLimit`).
+
+The profile algebras this owner declares — `DriverProfile`, `CheckpointStorageProfile`, `ReconciliationProfile`, `PanicContainmentProfile` — state the lawful configuration axes; depot rows select coordinates inside them. A profile selects within an operation's declared contracts and never widens one.
 
 ## Crossings
 
@@ -177,6 +189,9 @@ Fact: the typed boundary grammar for external operations and physical time. Owne
 
 **EffectProposal and EffectIntent.**
 Fact: one durably admitted intent to affect the outside world. Meaning owner: program — a transition produces the inert `EffectProposal` that declares the effect. Record owner: this home — REQUEST or PEND admission consumes the proposal and mints the durable `EffectIntent`, and this owner holds its publication contract and the outstanding relationship; Bvisor realizes it through fresh Attempts; reconciliation concludes it. Substitution refusal: a proposal is not an admitted intent; neither runtime nor Bvisor mints or edits effect *meaning*; an admitted intent survives any later semantic refusal. Chronology: carries ARCHITECTURE.md "What owns fact" and the effect proposal/admission split (owner-ruled 2026-08-24).
+
+**Runtime record publication.**
+Fact: durable acceptance of this owner's records (admitted intents, checkpoint advances, sealed reports where required, reconciliation records). Owner: this home (contract); a qualified store realizes it. Establishing operation: publication of what admission accepted, through the runtime-declared storage port family. Carrier: that family, stated in the port owner's contract grammar. Substitution refusal: a storage mechanism's success claim never substitutes for a receipt it did not establish, and publication of a runtime record never touches domain history or its order. Chronology: derives from the event owner's storage-publication pattern and the checkpoint ruling (2026-08-24).
 
 Generated implementations and harness descriptors may realize plumbing declared by this contract; Macroonz participates at build time and test time, never in runtime authority.
 
@@ -208,4 +223,4 @@ Genuine forks that only the repository owner rules; nothing below is decided by 
 
 ## Open realization seams
 
-Owner-derived contract work, not taste votes, and not closed here: the exact Stitch signature and advance decomposition (pure function first; a trait only when two real providers exist), the runtime stimulus algebra, the exact `VmValue` representation and operator inventory, wake and reservation mechanisms per target profile, and the checkpoint storage profile. Each lands with its first construction cut and its own falsifiers.
+Owner-derived contract work, not taste votes, and not closed here: the stimulus-algebra roster (`StitchStimulus` is seated; its member roster closes here — the `stitch` signature itself is declared in `ops.rs`, a pure free function until two real providers exist), the exact `VmValue` representation and operator inventory, wake and reservation mechanisms per target profile, and the checkpoint storage profile's mechanism selection. Each lands with its first construction cut and its own falsifiers.
