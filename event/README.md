@@ -74,7 +74,9 @@ CommitPoint / Cut    exact durable progress — not chronology
 
 **Honesty rules.** An excessive-future source value is preserved and classified, never clamped into a false source value. Counter overflow is a typed refusal — no wrap, no saturation, no invented chronology; prior accepted state remains intact. `ChronologySummary` merge is pure, same-profile, involves no wall clock, no source trust decision, no event stamping, and no durable-progress claim; its independently maximal components may never have co-occurred in one observation, and there is no road from the summary back to a SourceHlc or AcceptedHlc. Algebraic claims (associativity, commutativity, idempotence) are made per profile, only where they actually hold.
 
-**Nonclaims.** Chronology proves no causation, no durable order, no completeness, and no checkpoint progress. Exact component widths, skew ceilings, persistence, and the compatibility profile close with the chronology profile (owner-derived contract; open machining, not a fork).
+**Merge refusal is its own family.** Merge is total over validated same-profile summaries, so its refusal family (`ChronologyMergeRefusal`) has exactly one cause — profile mismatch — and deliberately shares nothing with the admission family: componentwise maximum of valid values has no overflow cause, and profile identity subsumes profile version.
+
+**Nonclaims.** Chronology proves no causation, no durable order, no completeness, and no checkpoint progress. Exact component widths, skew ceilings, persistence, and the compatibility profile close with the chronology profile (owner-derived contract; open machining, not a fork); the recovered width candidates and their preserved contradiction live in `depot/event.md`.
 
 *Chronology: carries the settled chronology rulings and the clock-role table (owner-endorsed direction, carried); the pure-advance shape derives from ARCHITECTURE.md §The rails (8).*
 
@@ -120,7 +122,7 @@ RemovalCommitment    the fact that the destructive boundary actually crossed
 
 ## 7. Storage publication contract
 
-The storage contract is behavioral and mechanism-free. Any qualified store must provide: append against an ExpectedCut; exact accepted-prefix read; freeze of an exact Cut; accepted-prefix recovery after crash; idempotent reopen; and compaction as physical succession.
+The storage contract is behavioral and mechanism-free. Its operation roster is closed (`StorageOperation`): append against an ExpectedCut; exact accepted-prefix read; freeze of an exact Cut; accepted-prefix recovery after crash; idempotent reopen; and compaction as physical succession. The family's contract declaration uses the port owner's grammar and is itself data, projected as a depot row.
 
 **Recovery law.** Recovery is committed-boundary-bounded, never caller-acknowledgement-bounded. Material beyond the last valid CommitPoint is lawfully discarded with a typed recovery receipt. Material within the committed boundary that cannot be read intact is refuse-and-hold — committed data may never be silently discarded, and committed-but-unacknowledged data may never be discarded at all.
 
@@ -141,13 +143,13 @@ ClaimFirst    ReceivedClaim → ValidatedClaim → AdmittedClaim
 DomainFirst   ReceivedClaim → ValidatedClaim → AcceptedEvent
 ```
 
-**Retry discharge law.** Only the matching terminal admitted receipt discharges that submission's retry duty: the claim-admission receipt (`ClaimAdmissionReceipt`) for a ClaimFirst submission; the domain-admission receipt — bound to the submission's idempotency identity and the accepted event's publication — for a DomainFirst submission. Nothing earlier can do it, and there is no generic `Admitted` or `Accepted`. How much progress is exposed before the terminal milestone (terminal-only versus progressive) is an interface-selected projection with no ThreadPak-wide default; both projections preserve the same discharge invariant.
+**Retry discharge law.** Only the matching terminal admitted receipt discharges that submission's retry duty: the claim-admission receipt (`ClaimAdmissionReceipt`) for a ClaimFirst submission; the domain-admission receipt (`DomainAdmissionReceipt`, draft spelling) — bound to the submission's idempotency identity, the accepted `EventId`, its `CommitPoint`, and the operation family — for a DomainFirst submission. Nothing earlier can do it, and there is no generic `Admitted` or `Accepted`. How much progress is exposed before the terminal milestone (terminal-only versus progressive) is an interface-selected projection with no ThreadPak-wide default; both projections preserve the same discharge invariant.
 
 **Milestone honesty.** Claim admission does not mean the domain assertion is true, that a domain event was accepted, that a process ran, or that a view caught up. Domain-event acceptance does not mean downstream effects completed or any checkpoint advanced. A progress witness states exactly what survived: recorded stage metadata is not crash-recoverable claim bytes unless the witness says so.
 
 **There is no `admit_domain` primitive.** Domain-fact admission is owned once, by accepted history. The ClaimFirst completion is a composition: application-owned interpretation of the validated claim into an EventProposal or domain refusal, ordinary event admission, and an ingress-recorded `ClaimResolution` relating the AdmittedClaim to its outcome. The claim's custody fact is never deleted; what closes is the processing obligation. When one qualified backend can co-publish the accepted event and the claim resolution under one proven local atomic boundary it may; the records remain semantically distinct, an accepted event is never rolled back because a resolution publication lagged, and a claim is never marked resolved before the event actually became accepted.
 
-**Idempotency identity ladder.** In order: natural business identity carried by the operation; an `IngressReservationToken` obtained through idempotent `Reserve` under a stable client-minted `ClientNonce`; a generated-client key minted per logical call instance (never per source-code call site); an explicit client-supplied key. Effectful ingress with none of these refuses before admission. No content-derived key — identical bytes cannot distinguish one retry from two intents — and no wall-clock bucket, AttemptId, session, route, connection, host, or shard may serve as identity.
+**Idempotency identity ladder.** The ladder is typed (`SubmissionIdentity`), in order: natural business identity carried by the operation; an `IngressReservationToken` obtained through idempotent `Reserve` under a stable client-minted `ClientNonce`; a generated-client key minted per logical call instance (never per source-code call site); an explicit client-supplied key. Effectful ingress with none of these refuses before admission. No content-derived key — identical bytes cannot distinguish one retry from two intents — and no wall-clock bucket, AttemptId, session, route, connection, host, or shard may serve as identity.
 
 **Reserve laws.** Repeating Reserve with the same nonce and same intent returns the same token, consuming bounded lookup work and no new reservation slot. The same nonce with conflicting intent is a typed reservation conflict — no overwrite, no second token. Quota exhaustion is a typed capacity refusal; an implementation may not evict an unexpired reservation and then accept a semantically ambiguous duplicate.
 
@@ -161,15 +163,17 @@ DomainFirst   ReceivedClaim → ValidatedClaim → AcceptedEvent
 
 ## Grants
 
-`AppendGrant` authorizes one append relationship to one region. `IngressGrant` authorizes one foreign-submission relationship. `RemovalGrant` authorizes participation in one removal ladder. Each is role-specific: no grant here widens, substitutes for another owner's grant, or survives its declared generation. Authority is minted, never authored — a caller cannot construct authority by writing a convincing value.
+`AppendGrant` authorizes one append relationship to one region. `IngressGrant` authorizes one foreign-submission relationship. `RemovalGrant` authorizes participation in one removal ladder. `PartitionGrant` authorizes participation in one partition lifecycle — seal, split, succession, activation, routing publication (owner-derived completion: the partition operations exist, so their authority role is forced; the spelling is a draft name). Each is role-specific: no grant here widens, substitutes for another owner's grant, or survives its declared generation. Authority is minted, never authored — a caller cannot construct authority by writing a convincing value.
 
 ## Receipts
 
 `AppendReceipt`, `RecoveryReceipt`, `PartitionHandoffReceipt`, `RemovalReceipt`, and the ingress stage receipts each prove exactly one boundary. There is no universal receipt (ARCHITECTURE.md §The rails, 13).
 
-## Bounds
+## Bounds and profiles
 
-Owner-local limits, consumed by the operations that declare them; numeric values and paved profiles live in the depot: `EventByteLimit`, `BatchEventLimit`, `CausalParentLimit`, `FederationSourceLimit`, `RecoveryScanBudget`, and the ingress reservation family (`ReservationCountLimit`, `ReservationByteLimit`, `ReservationsPerPrincipalLimit`, `ReservationsPerTenantLimit`, `ReservationsPerOperationLimit`, `ReservationCreationRateLimit`, `ReservationLookupWorkBudget`, `ReservationCreateWorkBudget`, `ClientNonceByteLimit`, `ReservationTokenByteLimit`, `ActiveReservationAgeLimit`, `ConflictEvidenceLimit`) plus the two horizons.
+Owner-local limits, consumed by the operations that declare them; numeric values live in `depot/event.md`: `EventByteLimit`, `BatchEventLimit`, `CausalParentLimit`, `UnresolvedCausalClaimLimit`, `FederationSourceLimit`, `RecoveryScanBudget`, and the ingress reservation family (`ReservationCountLimit`, `ReservationByteLimit`, `ReservationsPerPrincipalLimit`, `ReservationsPerTenantLimit`, `ReservationsPerOperationLimit`, `ReservationCreationRateLimit`, `ReservationLookupWorkBudget`, `ReservationCreateWorkBudget`, `ClientNonceByteLimit`, `ReservationTokenByteLimit`, `ActiveReservationAgeLimit`, `ConflictEvidenceLimit`) plus the two horizons.
+
+The limits are bundled into this owner's profile algebra (`EventAdmissionProfile`, `FederationProfile`, `ReservationProfile`, `RecoveryProfile`, `StorageProfile`, `ChronologyPolicy`): every operation receives its exact profile as an explicit argument, and nothing fetches a row ambiently (`depot/README.md`, "Rows are passed, never fetched"). A profile selects coordinates inside the algebra declared here; it can never widen it.
 
 ## Crossings
 
@@ -206,3 +210,12 @@ The falsifiers this home must refuse, each with a typed refusal a test can deman
 12. Raw rejected content escaping custody — in a refusal value, an unkeyed digest, or a direct re-admission.
 13. A compaction or storage generation change presented as new event identity or order.
 14. A carrier or wrapper minting or strengthening any witness.
+15. A claim resolution recorded before its outcome exists, or a closed obligation resolved twice.
+
+## Escalations
+
+Recorded for the repository owner; nothing below is decided by this contract.
+
+1. **Partition authority naming.** The partition operations force a role-specific authority; this contract declares it as `PartitionGrant` (owner-derived completion, parallel to the other three grants). The spelling is a draft name; the alternative — folding sealing authority into `AppendGrant` — was not taken because seal/split/routing answer a different question than append.
+2. **Federation source cap.** This contract declares `FederationSourceLimit`; the recovered corpus caps nothing ("one exact cut per store", no cap stated). Both postures are preserved as depot rows (`depot/event.md`); recommendation: keep the cap as an admission bound, value selected at the profile pass.
+3. **HLC width candidates.** ch10 selected {physical u64, logical u32}; the direction bank withholds widths. Preserved as contradiction rows in `depot/event.md`; recommendation: ratify the ch10 pair at the chronology-profile pass.

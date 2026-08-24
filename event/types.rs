@@ -12,9 +12,16 @@
 //! machined (for example, the chronology profile's exact widths). An empty
 //! body is a visible open seam, never a placeholder API.
 //!
-//! Cross-home types (payload values, schema bindings, knowledge axes, grants
-//! of other owners) are referenced in doc comments, not as fields, until the
-//! dependency probe seats the real imports.
+//! Cross-home types are referenced as bare names in field position, owners
+//! noted here — `RawWallObservation` (port), `SchemaId` and `SchemaVersion`
+//! (core schema) — never as `crate::` paths; the dependency probe seats the
+//! real imports. Application payload value roles and knowledge axes remain
+//! doc-referenced until their owners force fields.
+//!
+//! Profiles declared at the end of this file are the owner's configuration
+//! algebra: operations receive them as explicit arguments, selected values
+//! live in `depot/event.md`, and nothing here is fetched ambiently
+//! (`depot/README.md`, "Rows are passed, never fetched").
 
 use core::num::{NonZeroU32, NonZeroU64};
 
@@ -111,13 +118,38 @@ pub struct EventCommitment {
     /* closes with the canonical-byte profile */
 }
 
+/// The application-declared class of one event. Reserved internal classes
+/// are unmintable by public writers; authority is validated before frame
+/// construction.
+pub struct EventClass {
+    /* closes with the identity profile */
+}
+
+/// The schema commitment one event body is proposed and accepted under.
+/// `SchemaId` and `SchemaVersion` are the core schema owner's roles, carried
+/// here — this binding never substitutes for codec or layout identity.
+pub struct SchemaBinding {
+    schema: SchemaId,
+    version: SchemaVersion,
+}
+
+/// The bounded candidate bytes of one proposed event body, within
+/// `EventByteLimit`. Canonical only after admission proves it; holding this
+/// value proves nothing about canonicality or acceptance.
+pub struct ProposedEventBody {
+    /* bounded candidate bytes; canonical form closes with the canon profile */
+}
+
 /// A proposed fact. It carries no authority, no position, and no chronology;
 /// only admission can turn it into an `AcceptedEvent`. Public writers cannot
 /// propose reserved internal event classes — authority is validated before
 /// frame construction.
 pub struct EventProposal {
-    /* coordinate binding, payload reference, declared class, proposed
-     * causation; payload and schema binding are value/schema-owner types */
+    coordinate: Coordinate,
+    class: EventClass,
+    schema: SchemaBinding,
+    body: ProposedEventBody,
+    causation: ProposedCausation,
 }
 
 /// An immutable fact admitted into accepted history. The accepted record
@@ -130,12 +162,17 @@ pub struct AcceptedEvent {
     id: EventId,
     commitment: EventCommitment,
     coordinate: Coordinate,
+    class: EventClass,
+    schema: SchemaBinding,
     region: AuthorityRegionId,
     epoch: AuthorityEpoch,
     sequence: AuthoritySequence,
     predecessor: ImmediateHistoryPredecessor,
-    /* admitted chronology evidence (AcceptedHlc, optional SourceHlc),
-     * causation, and the payload/schema binding complete the record */
+    accepted_hlc: AcceptedHlc,
+    source_chronology: SourceChronologyEvidence,
+    causation: AdmittedCausation,
+    /* payload bytes are bound through `commitment` — the record references
+     * the body it commits to; it never carries a second copy */
 }
 
 /// Identity of one bounded write-authority region. Live write regions for one
@@ -266,10 +303,37 @@ pub struct ChronologySummary {
     /* closes with the chronology profile */
 }
 
-/// The declared local admission policy: regression posture, future posture,
-/// counter behavior, and profile identity.
+/// Identity of one chronology profile — the compatibility boundary of every
+/// chronology value. Numerically newer never implies compatible.
+pub struct ChronologyProfileId {
+    /* closes with the identity profile */
+}
+
+/// Time-class bound: how far a wall observation or source value may lead
+/// accepted chronology before classification refuses advancement. The
+/// numeric ceiling is a depot chronology row (withheld until selected).
+pub struct SkewCeiling {
+    /* a Time-class bound; value in depot/event.md */
+}
+
+/// The declared local admission policy: profile identity, skew ceiling,
+/// regression posture, future posture, and counter behavior.
 pub struct ChronologyPolicy {
-    /* closes with the chronology profile */
+    profile: ChronologyProfileId,
+    skew_ceiling: SkewCeiling,
+    /* regression posture, future posture, and counter behavior rosters
+     * close with the chronology profile pass */
+}
+
+/// Whether a submission supplied source chronology — a typed absence role,
+/// never a hole. Supplied values are preserved exactly; an excessive-future
+/// value is preserved and classified, never clamped.
+pub enum SourceChronologyEvidence {
+    /// Source chronology was supplied and is preserved as supplied.
+    Preserved(SourceHlc),
+    /// No source chronology was supplied — a genuine recorded fact, not a
+    /// defaulted value.
+    NoneSupplied,
 }
 
 /// The prior admitted chronology state consumed by pure admission. Owned by
@@ -279,12 +343,20 @@ pub struct ChronologyState {
     /* closes with the chronology profile */
 }
 
+/// Classification evidence of one chronology admission: what the observation
+/// and source looked like against policy (in-window, regression-classified,
+/// future-classified). Evidence about the admission, never a truth value.
+pub struct ChronologyAdmissionEvidence {
+    /* classification record; closes with the chronology profile */
+}
+
 /// The result of one pure chronology admission: the successor state, the
 /// admitted value, preserved source evidence, and admission evidence.
 pub struct ChronologyAdvance {
     next: ChronologyState,
     accepted: AcceptedHlc,
-    /* preserved SourceHlc where supplied, plus admission evidence */
+    source: SourceChronologyEvidence,
+    evidence: ChronologyAdmissionEvidence,
 }
 
 /// The typed refusal family of chronology admission. Overflow refuses — no
@@ -296,6 +368,15 @@ pub enum ChronologyRefusal {
     LogicalCounterOverflow,
     ProfileMismatch,
     /* the roster closes with the chronology profile */
+}
+
+/// The typed refusal family of `ChronologySummary` merge — deliberately its
+/// own single-cause family, not the admission family: merge is total over
+/// validated same-profile summaries, so the domain boundary is its only
+/// guard, and no overflow cause exists (componentwise max of valid values
+/// cannot overflow). Profile identity subsumes profile version.
+pub enum ChronologyMergeRefusal {
+    ProfileMismatch,
 }
 
 // ---------------------------------------------------------------------------
@@ -327,13 +408,39 @@ pub struct InlineCauseSet {
     causes: Vec<EventId>,
 }
 
+/// A foreign causal assertion as submitted, before admission: the asserted
+/// foreign cause reference and its claimed relationship. Inert input data —
+/// admission may record it as an `UnresolvedCausalClaim` and nothing else.
+pub struct ForeignCausalAssertion {
+    /* asserted foreign reference and claimed relationship; the foreign
+     * reference role closes with the identity profile */
+}
+
 /// An admitted, unverifiable foreign causal assertion. It never counts as
 /// `DomainCausation`, never closes a causal traversal, and never establishes
 /// causal completeness. Later evidence may admit a separate resolved
 /// relationship (owner-ruled 2026-08-24).
 pub struct UnresolvedCausalClaim {
-    /* asserted foreign cause reference and its provenance; the foreign
-     * reference role closes with the identity profile */
+    assertion: ForeignCausalAssertion,
+    /* admission provenance; closes with the identity profile */
+}
+
+/// The causation a proposal declares: already-accepted causes plus any
+/// foreign assertions. Empty rosters are the lawful measured "no declared
+/// causes" — a recorded zero, never absence-as-hole.
+pub struct ProposedCausation {
+    causes: InlineCauseSet,
+    assertions: Vec<ForeignCausalAssertion>,
+}
+
+/// The causation an accepted record carries: the admitted typed edges and
+/// the admitted-but-unresolved foreign claims, kept structurally apart so
+/// no reader can count a claim as an edge. Total inline parents across all
+/// edges are bounded by `CausalParentLimit`; unresolved claims by
+/// `UnresolvedCausalClaimLimit`.
+pub struct AdmittedCausation {
+    edges: Vec<DomainCausation>,
+    unresolved: Vec<UnresolvedCausalClaim>,
 }
 
 /// Membership and correlation relationships — entity, process, case,
@@ -373,15 +480,20 @@ pub struct RegionSealWitness {
 /// suffixes under fresh epochs.
 pub struct SplitWitness {
     parent: RegionSealWitness,
-    /* child region roster plus the disjointness and coverage proof; closes
-     * with the region-geometry contract */
+    children: Vec<AuthorityRegionId>,
+    /* the pairwise-disjointness and exact-coverage proof over `children`;
+     * representation closes with the region-geometry contract */
 }
 
 /// Explicit evidence relating positions across an authority succession. A
 /// parent cut and a child cut are never interchangeable without it.
 pub struct CutSuccessionWitness {
-    /* predecessor and successor scope bindings plus the exact translated
-     * boundary */
+    parent: RegionSealWitness,
+    successor_region: AuthorityRegionId,
+    successor_epoch: AuthorityEpoch,
+    /// The parent boundary as lawfully translated into the successor's
+    /// scope. A translated boundary, never a fresh mint.
+    translated: Cut,
 }
 
 /// The activation of one fresh epoch on a successor region. Activation
@@ -395,15 +507,46 @@ pub struct EpochActivation {
 /// reports authority; it never grants it, and physical placement is never
 /// partition identity.
 pub struct RoutingPublication {
-    /* successor roster; closes with the deployment contract */
+    successors: Vec<EpochActivation>,
+    /* physical placement and reachability rows close with the deployment
+     * contract — they report, never grant */
 }
 
-/// Evidence that one complete handoff — seal, succession, activation,
-/// route-last publication — occurred lawfully.
+/// Authorizes participation in one partition lifecycle (seal, split,
+/// succession, activation, routing publication) for one region family.
+/// Role-specific like every grant here; owner-derived completion — the
+/// partition operations exist, so their authority role is forced (see
+/// README Escalations for the naming note).
+pub struct PartitionGrant {
+    /* scope, generation, and attenuation close with the guard pass */
+}
+
+/// The typed refusal family of partition operations.
+pub enum PartitionRefusal {
+    /// The parent epoch is not sealed at the claimed Cut.
+    ParentNotSealed,
+    /// Two proposed child regions overlap.
+    ChildrenOverlap,
+    /// The proposed children leave part of the parent uncovered.
+    CoverageGap,
+    /// A parent and child position were related without succession evidence.
+    SuccessionEvidenceMissing,
+    /// Routing publication was attempted before child activation.
+    RoutingBeforeActivation,
+    /// The caller's grant does not cover this region family.
+    WrongAuthority,
+    /* the roster closes with the region-geometry contract */
+}
+
+/// Evidence that one complete handoff — seal, split, succession, activation,
+/// route-last publication — occurred lawfully. The parent seal rides inside
+/// the split witness.
 #[must_use]
 pub struct PartitionHandoffReceipt {
-    /* binds the seal, split witness, succession evidence, activations, and
-     * routing publication */
+    split: SplitWitness,
+    succession: CutSuccessionWitness,
+    activations: Vec<EpochActivation>,
+    routing: RoutingPublication,
 }
 
 // ---------------------------------------------------------------------------
@@ -416,16 +559,45 @@ pub struct RemovalGrant {
     /* scope, generation, and attenuation close with the guard pass */
 }
 
+/// Identity of one removal plan.
+pub struct RemovalPlanId {
+    /* closes with the identity profile */
+}
+
+/// Identity of one removal admission.
+pub struct RemovalAdmissionId {
+    /* closes with the identity profile */
+}
+
+/// Identity of one removal commitment.
+pub struct RemovalCommitmentId {
+    /* closes with the identity profile */
+}
+
+/// The exact scope of one requested destruction: which region, at which
+/// exact Cut, over which extent. Never a pattern, never "everything since".
+pub struct RemovalScope {
+    region: AuthorityRegionId,
+    at: Cut,
+    /* the exact extent within the region; closes with the storage contract */
+}
+
 /// A caller-authored removal request. It grants nothing.
 pub struct RemovalPlan {
-    /* exact scope and cut binding of the requested destruction */
+    id: RemovalPlanId,
+    scope: RemovalScope,
 }
 
 /// Affine, boundary-minted authority for one exact destructive operation.
 /// Consumed by the crossing it authorizes; never cloneable, never reusable.
 #[must_use]
 pub struct RemovalAdmission {
-    /* binds the plan, the exact scope and cut, and the granting authority */
+    id: RemovalAdmissionId,
+    plan: RemovalPlanId,
+    /// The exact scope re-bound at admission — a plan cannot widen between
+    /// authoring and admission.
+    scope: RemovalScope,
+    /* granting-authority binding closes with the guard pass */
 }
 
 /// The fact that the destructive boundary actually crossed. Authorized
@@ -434,13 +606,30 @@ pub struct RemovalAdmission {
 /// distinguishable answers (the read-outcome family is declared with the
 /// query surface).
 pub struct RemovalCommitment {
-    /* binds the admission and the exact destroyed extent */
+    id: RemovalCommitmentId,
+    admission: RemovalAdmissionId,
+    /// The exact extent actually destroyed — never wider than admitted.
+    destroyed: RemovalScope,
 }
 
 /// Evidence of one completed removal ladder.
 #[must_use]
 pub struct RemovalReceipt {
-    /* binds plan, admission, and commitment identities */
+    plan: RemovalPlanId,
+    admission: RemovalAdmissionId,
+    commitment: RemovalCommitmentId,
+}
+
+/// The typed refusal family of the removal ladder.
+pub enum RemovalRefusal {
+    /// The caller's grant does not cover this removal ladder.
+    WrongAuthority,
+    /// The admission's scope does not match the plan it claims.
+    ScopeMismatch,
+    /// The plan's Cut binding is not the current accepted boundary state
+    /// the ladder requires.
+    StaleCut,
+    /* the roster closes with the removal contract */
 }
 
 // ---------------------------------------------------------------------------
@@ -455,14 +644,22 @@ pub struct StorageGeneration {
     /* closes with the storage contract */
 }
 
+/// One accepted identity at its exact accepted position — one row of an
+/// `AppendReceipt`'s published batch.
+pub struct AcceptedPosition {
+    event: EventId,
+    sequence: AuthoritySequence,
+}
+
 /// Evidence of one durable append publication: which proposals became
 /// accepted, at which positions, through which commit point. Claims exactly
 /// the publication boundary and nothing more — not namespace publication,
-/// not derived progress, not checkpoint advancement.
+/// not derived progress, not checkpoint advancement. The batch roster is
+/// bounded by `BatchEventLimit`.
 #[must_use]
 pub struct AppendReceipt {
     commit: CommitPoint,
-    /* accepted identities and positions of the published batch */
+    accepted: Vec<AcceptedPosition>,
 }
 
 /// The lawful classifications of material found during accepted-prefix
@@ -478,12 +675,65 @@ pub enum RecoveryClassification {
     BeyondCommittedBoundary,
 }
 
+/// One classified extent encountered during recovery: its classification
+/// and the exact material bounds it covers.
+pub struct ClassifiedExtent {
+    classification: RecoveryClassification,
+    /* exact extent bounds; closes with the storage contract */
+}
+
 /// Evidence of one recovery pass: the exact recovered boundary and the
-/// classified disposition of everything beyond it.
+/// classified disposition of everything encountered beyond it.
 #[must_use]
 pub struct RecoveryReceipt {
     recovered: CommitPoint,
-    /* classified extents and their dispositions */
+    classified: Vec<ClassifiedExtent>,
+}
+
+/// The typed refusal family of a recovery pass. Classification is total —
+/// refuse-and-hold is a classification, not a refusal — so this family
+/// covers only the pass itself failing to complete lawfully.
+pub enum RecoveryRefusal {
+    /// The scan budget was exhausted before the committed boundary was
+    /// established. No partial boundary is reported as recovered.
+    ScanBudgetExhausted,
+    /* the roster closes with the storage contract */
+}
+
+/// Bounded scan evidence handed to pure recovery classification by the
+/// storage boundary: what material was physically encountered, as claims to
+/// classify — never as trusted structure.
+pub struct SegmentScanEvidence {
+    /* scanned frame and segment claims; closes with the storage contract */
+}
+
+/// One bounded exact read over the accepted prefix at an exact Cut — the
+/// input surface derivation consumes (view advance and resolve read through
+/// this role). A read, never authority: it mints nothing, advances nothing,
+/// and its extent is bounded by the consuming operation's declared bounds.
+/// The seven-way history-read outcome family is declared with the query
+/// surface, not here.
+pub struct ExactHistoryRead {
+    at: Cut,
+    /* bounded extent binding; closes with the storage contract */
+}
+
+/// The closed roster of operations the storage port family declares. The
+/// family's `PortContract` declaration (port grammar) selects exactly these;
+/// the declaration itself is data and is projected as a depot row.
+pub enum StorageOperation {
+    /// Append a bounded admitted batch against an `ExpectedCut`.
+    Append,
+    /// Read an exact accepted prefix.
+    ExactPrefixRead,
+    /// Freeze an exact Cut for readers.
+    FreezeCut,
+    /// Recover the accepted prefix after a crash.
+    Recover,
+    /// Reopen idempotently.
+    Reopen,
+    /// Compact into a fresh `StorageGeneration`.
+    Compact,
 }
 
 // ---------------------------------------------------------------------------
@@ -523,6 +773,39 @@ pub struct ClientNonce {
 /// substitute for any other owner's grant.
 pub struct IngressGrant {
     /* scope, generation, and attenuation close with the guard pass */
+}
+
+/// Identity of one ingress operation family — the scope reservations,
+/// quotas, and receipts are keyed by ("per operation" in the bounds).
+pub struct IngressOperationFamilyId {
+    /* closes with the identity profile */
+}
+
+/// The canonical commitment of one submission's intent, bound at `Reserve`.
+/// Same-nonce duplicate detection compares this commitment: equal commitment
+/// is one retry, different commitment is a typed conflict. A commitment,
+/// never the intent bytes themselves.
+pub struct ReservationIntentCommitment {
+    /* closes with the canon profile */
+}
+
+/// The idempotency identity one effectful submission carries — the settled
+/// four-rung ladder, in order. Effectful ingress with none of these refuses
+/// before admission (`IngressRefusal::NoLawfulIdempotencyIdentity`); no
+/// content-derived key, wall-clock bucket, AttemptId, session, route,
+/// connection, host, or shard may substitute.
+pub enum SubmissionIdentity {
+    /// Natural business identity carried by the operation itself. The
+    /// application's key role, carried — never interpreted here.
+    NaturalBusinessIdentity(/* application key role; bounded, carried */),
+    /// A reservation token obtained through idempotent `Reserve` under a
+    /// stable client-minted nonce.
+    Reservation(IngressReservationToken),
+    /// A generated client key minted per logical call instance — never per
+    /// source-code call site.
+    GeneratedClientKey(/* bounded opaque key bytes */),
+    /// An explicit client-supplied key.
+    ExplicitClientKey(/* bounded opaque key bytes */),
 }
 
 /// The durable reservation minted or recovered by idempotent `Reserve` under
@@ -592,36 +875,69 @@ pub struct ValidatedClaim {
     /* validation evidence and survival posture */
 }
 
+/// The durable-custody publication boundary of one admitted claim: evidence
+/// that the claim's custody bytes actually became durable. Custody evidence
+/// only — not domain truth, not an accepted event.
+pub struct ClaimCustodyCommitment {
+    /* custody publication binding; closes with the storage contract */
+}
+
 /// Durable ingress custody of one foreign claim. The ClaimFirst terminal
 /// fact: its receipt — and nothing earlier — discharges the sender's
 /// claim-submission retry duty. Claim admission is not domain truth, not an
 /// accepted event, not a process run, and not view progress.
 pub struct AdmittedClaim {
     identity: ClaimIdentity,
-    /* durable custody binding and exact admission evidence */
+    /// Which submission's retry duty this custody fact can discharge.
+    submission: SubmissionIdentity,
+    custody: ClaimCustodyCommitment,
 }
 
-/// The retry-discharging receipt of one ClaimFirst submission.
+/// The retry-discharging receipt of one ClaimFirst submission: bound to the
+/// exact submission identity and the durable custody boundary — the two
+/// facts that make "this exact submission's duty is discharged" checkable.
 #[must_use]
 pub struct ClaimAdmissionReceipt {
     identity: ClaimIdentity,
-    /* exact admission evidence */
+    submission: SubmissionIdentity,
+    custody: ClaimCustodyCommitment,
+}
+
+/// The retry-discharging receipt of one DomainFirst submission (draft
+/// spelling). An `AcceptedEvent` alone does not prove *this* submission's
+/// duty was discharged; the receipt binds the submission's idempotency
+/// identity to the accepted identity and its exact publication boundary,
+/// under the operation family it was submitted through.
+#[must_use]
+pub struct DomainAdmissionReceipt {
+    submission: SubmissionIdentity,
+    event: EventId,
+    commit: CommitPoint,
+    operation: IngressOperationFamilyId,
 }
 
 /// The recorded outcome of one admitted claim's processing obligation. The
 /// custody fact is never deleted; what closes is the obligation. Never
 /// recorded before the outcome actually exists.
-pub enum ClaimResolution {
+///
+/// `DomainRefusal` is the application's typed domain-refusal family, carried
+/// generically exactly as `Decision::Defer` carries its demand (core logic
+/// precedent): ingress records it verbatim and interprets nothing. It is an
+/// application-constructed value under the application's own redaction
+/// discipline — never raw foreign bytes, which the rejected-content law
+/// already forbids inside any refusal value.
+pub enum ClaimResolution<DomainRefusal> {
     /// The claim was interpreted and its proposal was accepted into history.
     ResolvedAsAcceptedEvent {
         claim: ClaimIdentity,
         event: EventId,
     },
     /// The claim was interpreted and refused by the application's domain
-    /// interpretation.
+    /// interpretation. The refusal that explains what happened rides the
+    /// record — a resolution may never lose it.
     ResolvedWithDomainRefusal {
         claim: ClaimIdentity,
-        /* the typed domain refusal, application-owned */
+        refusal: DomainRefusal,
     },
 }
 
@@ -677,6 +993,12 @@ pub enum IngressRefusal {
     /// Validation failed; the rejected-content disposition governs what is
     /// retained.
     ClaimValidationRefused,
+    /// A claim resolution was submitted before its outcome actually existed
+    /// (the referenced event is not accepted). Never recorded.
+    ResolutionBeforeOutcome,
+    /// The claim's processing obligation is already closed; a second
+    /// resolution never overwrites the first.
+    ClaimAlreadyResolved,
     /* the roster closes with the ingress contract */
 }
 
@@ -697,6 +1019,11 @@ pub struct BatchEventLimit(NonZeroU32);
 /// Maximum inline causal parents of one event (the fan-in bound,
 /// owner-ruled 2026-08-24).
 pub struct CausalParentLimit(NonZeroU32);
+
+/// Maximum admitted unresolved causal claims on one event. A bounded roster
+/// like every admitted roster — an unbounded claim list would be a foreign
+/// storage grant.
+pub struct UnresolvedCausalClaimLimit(NonZeroU32);
 
 /// Maximum participating authorities of one `SourceSet`.
 pub struct FederationSourceLimit(NonZeroU32);
@@ -742,3 +1069,61 @@ pub struct ActiveReservationAgeLimit {
 
 /// Maximum retained conflict evidence per reservation.
 pub struct ConflictEvidenceLimit(NonZeroU32);
+
+// ---------------------------------------------------------------------------
+// Profiles — this owner's configuration algebra. A profile is a typed bundle
+// of the owner's selectable facts; operations receive the exact profile as an
+// explicit argument, selected values are depot rows (depot/event.md), and no
+// operation fetches a profile ambiently. A profile selects coordinates inside
+// the algebra declared here; it can never widen it.
+// ---------------------------------------------------------------------------
+
+/// The admission profile: the bounds one event admission runs under.
+/// Reserved-class roster and genesis posture close with the admission
+/// contract.
+pub struct EventAdmissionProfile {
+    event_bytes: EventByteLimit,
+    batch_events: BatchEventLimit,
+    causal_parents: CausalParentLimit,
+    unresolved_claims: UnresolvedCausalClaimLimit,
+}
+
+/// The federation profile: the bounds multi-source claims run under.
+pub struct FederationProfile {
+    sources: FederationSourceLimit,
+}
+
+/// The reservation profile: every bound of the ingress reservation family
+/// plus the two horizons. Guarded construction refuses a
+/// `DuplicateRecognitionHorizon` that closes before the
+/// `TokenUsabilityHorizon`.
+pub struct ReservationProfile {
+    count: ReservationCountLimit,
+    bytes: ReservationByteLimit,
+    per_principal: ReservationsPerPrincipalLimit,
+    per_tenant: ReservationsPerTenantLimit,
+    per_operation: ReservationsPerOperationLimit,
+    creation_rate: ReservationCreationRateLimit,
+    lookup_work: ReservationLookupWorkBudget,
+    create_work: ReservationCreateWorkBudget,
+    nonce_bytes: ClientNonceByteLimit,
+    token_bytes: ReservationTokenByteLimit,
+    active_age: ActiveReservationAgeLimit,
+    conflict_evidence: ConflictEvidenceLimit,
+    token_usability: TokenUsabilityHorizon,
+    duplicate_recognition: DuplicateRecognitionHorizon,
+}
+
+/// The recovery profile: the work one recovery pass may consume.
+pub struct RecoveryProfile {
+    scan: RecoveryScanBudget,
+}
+
+/// The storage profile: the selected physical-store facts a qualified store
+/// is configured with. Segment sizing, compaction posture, and generation
+/// retention close with the storage contract; the profile is mechanism
+/// configuration and never semantic identity.
+pub struct StorageProfile {
+    /* segment, compaction, and retention selections; close with the storage
+     * contract */
+}
