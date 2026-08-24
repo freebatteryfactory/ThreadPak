@@ -1,5 +1,5 @@
 [toolchain]
 channel = "1.98.0"
 components = ["rustfmt", "clippy", "rust-src"]
-# The browser is one of the machine's targets.
+# wasm32 is an intended qualification target.
 targets = ["wasm32-unknown-unknown"]

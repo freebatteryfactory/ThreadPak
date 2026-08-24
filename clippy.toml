@@ -1,4 +1,4 @@
-# Configuration for the clippy half of the lint wall in Cargo.toml.
+# Configuration for the clippy half of the lint wall.
 # Settings only. A key with no live lint behind it does not belong here.
 
 msrv = "1.98.0"
