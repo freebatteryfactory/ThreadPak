@@ -61,7 +61,8 @@ EffectProposal   a proposed external effect, inert until admitted
 EffectIntent     a durably admitted intent to affect the outside world
 PortRequest      one physical request
 AttemptReport    what one physical Attempt observed
-View             derived state
+View             the declared derivation — sources, frame, laws
+ViewState        one maintained derived state at one AppliedCut
 Checkpoint       durable skip authority for one consumer
 Receipt          role-specific durable evidence
 ```
