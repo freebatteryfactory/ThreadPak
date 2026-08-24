@@ -36,7 +36,21 @@ Accepted history is not a derived view. That single separation is this owner's r
 
 **The parity contract.** For every result this owner claims to maintain incrementally, the push-maintained result equals pull recomputation at the same claim, source set, exact Cuts, frame, relation versions, configuration, and profile. Parity applies to exactly one of the three root cases: a semantic maintained result requires parity; an awareness notification carries no result claim and is not this owner's resident (it is runtime delivery); a physical effect or observation is not a derived-view pair at all.
 
-The two roads must remain structurally independent where parity is judged: the maintained road and the reference recomputation road may share declarations, but never one shared load-bearing evaluator whose common defect would certify itself. Macroonz, as the published generation and harness dependency, may generate plumbing for both roads and independently pressures the pair; it owns no view semantics.
+The two roads must remain structurally independent where parity is judged: the maintained road and the reference recomputation road may share declarations, but never one shared load-bearing evaluator whose common defect would certify itself. Macroonz, as the published generation and harness dependency, may generate plumbing for both roads, project this owner's profile and operation indexes, and independently pressure the pair; it owns no view semantics.
+
+## Operations, profiles, and rows
+
+The thin semantic signatures live in `ops.rs`; every operation receives its profile and bounds as explicit typed arguments, and the selected values are rows in `depot/view.md` (`depot/README.md` — "Rows are passed, never fetched"). The pull-lane operations consume the event owner's exact-read surface over accepted history (`ExactHistoryRead` — declaration owed by the event owner; recorded escalation).
+
+| Operation | Consumes | Refuses with |
+| --- | --- | --- |
+| `resolve`, `resolve_continue`, `rebuild` | `ViewResolveProfile`, affine `QueryWorkBudget` | `QueryRefusal` |
+| `advance` | `ViewAdvanceProfile`, prior `View`, `AdmittedDelta` | `AdvanceRefusal` |
+| `advance_monitor` | `MonitorProfile`, prior `TemporalMonitorState`, `AdmittedDelta` | `MonitorRefusal` |
+| `verify_parity` | `ViewResolveProfile`, affine `QueryWorkBudget` | `QueryRefusal` (verdicts are `ParityVerdict::Held / Diverged`) |
+| `derive_selection`, `prove_row_domain_equality`, the compose family, `convert_selection` | `SelectionRepresentation`, `SelectionCardinalityLimit`, `RowDomainEqualityWitness` | `SelectionRefusal` |
+| the eight materialization lifecycle operations | `MaterializationProfile` | `MaterializationRefusal` |
+| `resolve_protected` | `ProtectedResolutionGrant`, lawful `SelectionMask` | `ReleaseRefusal` |
 
 ## Temporal claims
 
@@ -132,27 +146,29 @@ Each crossing is stated per the no-orphan rule: fact, owner, establishing operat
 
 The falsifiers any realization of this owner must be pressured with. Each names the lie it kills.
 
-1. **Push/pull disagreement** — the maintained road and the reference road diverge at the same claim, source set, Cuts, frame, and profile; parity must fail loudly, and the maintained result must lose.
-2. **Stale `AppliedCut`** — a generation claims incorporation it cannot prove; new bytes masquerade as new knowledge.
-3. **Equal-cardinality wrong RowDomain** — a mask or column transplanted onto a different population of the same size; must refuse, never compose.
-4. **Approximate candidate claiming truth** — a candidate set reported as an exact result, an absence, or an order.
-5. **Forbidden field materialized before authorization** — any payload or extent touched ahead of the lawful mask.
-6. **Corrupt materialization impersonating history** — a damaged derived artifact reported as absence or as fact instead of being discarded and rebuilt.
-7. **Unbounded-liveness claim settling without closure** — an "eventually" with no horizon reported `Violated` (or `Satisfied`-by-silence) over an unclosed source set.
-8. **Mask flattening `Pending` into `False`** — fail-closed misused to report the stronger fact.
-9. **Cursor or wake presented as progress** — either accepted where checkpoint authority is required.
-10. **Derived value crossing the wall** — any view resident consumed by admission, ordering, or authority.
+1. **Push/pull disagreement** — the maintained road and the reference road diverge at the same claim, source set, Cuts, frame, and profile; parity must fail loudly, and the maintained result must lose. *Killed by:* `verify_parity` → `ParityVerdict::Diverged`, then `rebuild`.
+2. **Stale `AppliedCut`** — a generation claims incorporation it cannot prove; new bytes masquerade as new knowledge. *Killed by:* `bind_materialization` → `MaterializationRefusal::AppliedCutUnproven`.
+3. **Equal-cardinality wrong RowDomain** — a mask or column transplanted onto a different population of the same size; must refuse, never compose. *Killed by:* the compose family requiring `RowDomainEqualityWitness`; `SelectionRefusal::RowDomainEqualityUnproven`.
+4. **Approximate candidate claiming truth** — a candidate set reported as an exact result, an absence, or an order. *Killed by:* `ApproximateCandidateSet` having no conversion to any mask or result type — verification or an honest incomplete result are its only consumers.
+5. **Forbidden field materialized before authorization** — any payload or extent touched ahead of the lawful mask. *Killed by:* `resolve_protected` → `ReleaseRefusal::ReleaseOrderViolated` / `GrantAbsent` / `GrantScopeExceeded`.
+6. **Corrupt materialization impersonating history** — a damaged derived artifact reported as absence or as fact instead of being discarded and rebuilt. *Killed by:* `MaterializationRefusal::OccurrenceCorrupt`, then rebuild.
+7. **Unbounded-liveness claim settling without closure** — an "eventually" with no horizon reported `Violated` (or `Satisfied`-by-silence) over an unclosed source set. *Killed by:* `TemporalHorizon` required by `TemporalClaim` construction; `MonitorRefusal::ClosureUnavailable`.
+8. **Mask flattening `Pending` into `False`** — fail-closed misused to report the stronger fact. *Killed by:* construction — membership derivation carries `Truth` per claim law and no arm converts `Pending`.
+9. **Cursor or wake presented as progress** — either accepted where checkpoint authority is required. *Killed by:* construction — `Cursor` has no conversion to any checkpoint role; wakes are not view residents.
+10. **Derived value crossing the wall** — any view resident consumed by admission, ordering, or authority. *Killed by:* construction — no view type converts into an event-owner authority type (this section's refusal law).
 
 ## Refusal families
 
-Role-specific, never one mega-error: `QueryRefusal`, `AdvanceRefusal`, `SelectionRefusal`, `MonitorRefusal`, `MaterializationRefusal`, `ReleaseRefusal`. Every refusal names the violated law, the typed owner, the offending value's role, and the repair direction. `RowDomainEqualityUnproven` is a settled member of `SelectionRefusal`.
+Role-specific, never one mega-error: `QueryRefusal`, `AdvanceRefusal`, `SelectionRefusal`, `MonitorRefusal`, `MaterializationRefusal`, `ReleaseRefusal`. The reachable rosters are declared in `types.rs`; every variant's payload carries the violated law, the typed owner, the offending value's role, and the repair direction, with the exact payload bodies closing at the guard pass. `RowDomainEqualityUnproven` is a settled member of `SelectionRefusal`. Fake totality is a defect: no roster carries an arm no public input can reach.
 
 ## Escalations — open seams recorded, not closed
 
 These are the repository owner's calls; nothing below is decided by this document.
 
 1. **`Fix<T>` exact public shape.** The role and its axes are law; the exact Rust spelling and public field surface remain open per the coordinates ruling that fixed the semantics while leaving names open.
-2. **View versus Projection.** The corpus carries both nouns for maintained derived results. One may be redundant; this contract declares `View` and holds `Projection` unminted pending the naming call.
+2. **View versus Projection — and the definition/state probe.** The owner keeps `View` and mints no `Projection` (lowercase projection stays the root's generated-artifact category). The remaining question, probed at contract closure and issued as a card with this packet: whether `View` lawfully hides two roles — a ViewDefinition (the claim and its laws) and a ViewState (one derived state at one `AppliedCut`). The definition-binding seams in `types.rs` (`View`, `Subscription`) close with that ruling; `AdvanceRefusal::StateClaimMismatch` is the refusal that exists only if the roles are distinct.
 3. **Temporal claim starter set.** Which claim families exist first (always, never, bounded eventually, bounded until, or a smaller set).
 4. **Cross-source temporal finality postures.** Which claims may settle over independently frozen federation Cuts and which require causally constrained or coordinated Cuts.
 5. **Monitor fast-start.** Recompute-only first, or optional derived monitor checkpoints with exact invalidation keys.
+6. **`ExactHistoryRead` (cross-owner seam — closed).** Every pull-lane operation consumes the event owner's exact-read surface over accepted history. The event owner seated the declaration with its storage contract at contract closure; this entry stays as the record of the seam, no longer open.
+7. **Subscription retention horizon.** The recovered subscription lifecycle names a retention-expiry stage; no Time-class horizon type exists yet (`depot/view.md`, `view.subscription-retention-horizon`). The type mints with its construction cut, not here.
