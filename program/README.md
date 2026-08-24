@@ -45,11 +45,11 @@ fn decide(
 ) -> Result<Transition, DecisionRefusal>;
 ```
 
-A `Transition` carries event proposals, effect intents, and an optional immediate result, together with explanation and consumed-work accounting. A program evaluation:
+A `Transition` carries event proposals, effect proposals, and an optional immediate result, together with explanation and consumed-work accounting. A program evaluation:
 
 - reads only explicit typed inputs frozen at exact Cuts — no ambient clock, no ambient store, no host callback, no hidden effect;
 - proposes events; it never accepts them — event admission is the only domain-fact admission and belongs to the event owner;
-- declares effect intents; it never performs them — realization belongs to the runtime, Bvisor, and port owners;
+- proposes effects; it never performs or admits them — REQUEST and PEND admission mints the durable, runtime-owned `EffectIntent`, and realization belongs to the runtime, Bvisor, and port owners;
 - refuses with a typed `DecisionRefusal` when its inputs, bounds, or laws cannot be satisfied.
 
 If a program needs physical time or external evidence, it either receives an already-admitted observation as explicit input or produces a typed request. There is no ambient fallback.
@@ -61,19 +61,19 @@ A program operation declares one posture. The posture states what the operation 
 ```text
 ASK       pure evaluation over supplied immutable inputs at exact Cuts
 DO        admit local event-publication intent once applicable requirements close
-REQUEST   durably admit an external EffectIntent and return without waiting
-PEND      durably admit the same intent and drive one immediate bounded Attempt
+REQUEST   admit the effect proposal as a durable EffectIntent, return without waiting
+PEND      admit the same proposal durably and drive one immediate bounded Attempt
 ```
 
 PEND is the settled spelling; nothing waits. A posture declaration performs nothing by itself.
 
-## Effectful recursion: two lanes
+## Effectful recursion: two roads
 
-Well-founded recursion is lawful. It meets the external world in exactly two ways.
+Well-founded recursion is lawful. It meets the external world in exactly two ways. (These are recursion roads, not the machine's two computational lanes — the divided highway of `ARCHITECTURE.md` is a different distinction.)
 
-**Atomic planning — the paved road.** The recursion builds one bounded `EffectBatch` as data and crosses no external boundary while recursing. The complete batch is admitted afterward and executed later. If the recursion refuses at any depth, nothing external has happened.
+**Atomic planning — the paved road.** The recursion builds one bounded `EffectBatch` of effect proposals as data and crosses no external boundary while recursing. The complete batch is admitted afterward and executed later. If the recursion refuses at any depth, nothing external has happened.
 
-**Interleaved effects.** The recursion crosses REQUEST or PEND boundaries while evaluation continues. This is lawful only when the recursion witness closes: maximum effect count, effect ordering, capabilities, semantic work, memory, output, suspension depth, continuation state, the absolute deadline, and the recovery posture.
+**Interleaved effects.** The recursion crosses REQUEST or PEND boundaries while evaluation continues — each crossed proposal becomes one durable `EffectIntent`. This is lawful only when the recursion witness closes: maximum effect count, effect ordering, capabilities, semantic work, memory, output, suspension depth, continuation state, the absolute deadline, and the recovery posture.
 
 The hard law of the interleaved lane: **an effect admitted before a later recursive refusal remains admitted and receipted.** There is no rollback of external reality because a deeper frame later refused.
 
@@ -136,7 +136,7 @@ Owner-local bound types, classified under the seven closed classes of root law; 
 SemanticWorkBudget     Work        affine — charging consumes, no widening exists
 RecursionDepthLimit    Work        copyable limit
 EventProposalLimit     Output      copyable limit
-EffectIntentLimit      Effect      copyable limit
+EffectProposalLimit    Effect      copyable limit
 ResultValueLimit       Result      copyable limit
 SuspensionLimit        Suspension  copyable limit
 KnowledgeBudget        Work        affine — charging consumes, no widening exists
@@ -158,8 +158,8 @@ Each entry follows the no-orphan rule: fact, owner, establishing operation, carr
 |---|---|---|---|---|---|
 | What an admitted image computes next | runtime (PakVM) | VM stepping over `ExecutableProgramImage` plus an admitted invocation | `ExecutableProgramImage`, Program-minted | PakVM accepts only `ExecutableProgramImage`; private construction forbids unvalidated images; PakVM owns execution-state integrity, never image meaning | Carries owner ruling (2026-08-24, three-gate image law) |
 | Whether one invocation may run now | runtime and Bvisor | invocation admission: runtime binds Turn, inputs, Cuts, generation, semantic bounds, recovery posture; Bvisor binds grants, ports, reservations, clock domains, deadline, fresh Attempt | admission request referencing an `ExecutableProgramImage` | an executable image is not an admitted invocation | Carries owner ruling (2026-08-24, three-gate image law) |
-| External effect realization | runtime (REQUEST and PEND operations), Bvisor, port | durable intent admission, fresh Attempt, typed port crossing | `EffectIntent` and `EffectBatch`, Program-declared | a posture declaration performs nothing; a Transition never executes an effect | Derives from sync-first rail (`ARCHITECTURE.md`, "The rails" 8) |
-| Domain-fact acceptance | event | the one event admission operation at an expected Cut | `EventProposal`, Program-declared | a Transition proposes and never accepts; there is no second admission primitive anywhere | Carries owner ruling (2026-08-24, single-admission law) |
+| External effect realization | runtime (REQUEST and PEND admission mint the durable `EffectIntent`), Bvisor, port | durable intent admission, fresh Attempt, typed port crossing | `EffectProposal` and `EffectBatch`, Program-declared | a proposal performs nothing; a Transition never executes or admits an effect | Derives from sync-first rail (`ARCHITECTURE.md`, "The rails" 8) |
+| Domain-fact acceptance | event | the one event admission operation at an expected Cut | `EventProposal` (event-owned noun), carried in the Transition | a Transition proposes and never accepts; there is no second admission primitive anywhere | Carries owner ruling (2026-08-24, single-admission law) |
 | Derived inputs at exact Cuts | view | pull recomputation or push maintenance under the parity law | typed snapshot and Fix inputs consumed by `decide` | a program reads explicit frozen inputs only; no ambient reads | Carries root law (`ARCHITECTURE.md`, "The two lanes") |
 | Application effect operations | port (grammar), application (declaration) | port contract declaration | typed port request and response families | the port grammar owns the boundary; no port family is declared inside this owner | Carries root law (`ARCHITECTURE.md`, "One machine") |
 | Evidence acquisition after Defer | runtime drives; port acquires; event admits | acquisition policy selects REQUEST or PEND; observation re-enters through ordinary admission at a new Cut | `EvidenceRequirement` value inside `Decision::Defer` | the requirement performs no effect and grants nothing | Carries owner ruling (2026-08-24, Knowledge seat) |

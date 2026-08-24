@@ -5,9 +5,12 @@
 //! construction laws are enforced by private fields and owner-module
 //! constructors when this owner is realized.
 //!
-//! Cross-owner names (`Cut`, `SourceSet`, `EventProposalBody`, `PortFamilyId`,
+//! Cross-owner names (`Cut`, `SourceSet`, `EventProposal`, `PortFamilyId`,
 //! `CapabilityRequirement`, `AdmittedObservation`, `Decision`) resolve to their
 //! owning contracts; their declaration seats follow the dependency probe.
+//! `EventProposal` is the event owner's noun — this owner carries it, never
+//! declares it. The durable `EffectIntent` record is runtime-owned; this owner
+//! declares only the inert `EffectProposal` that admission strengthens.
 //! Where a field must agree with another field, neither field is public.
 //!
 //! Derives are semantic claims. Plain limits are `Copy`; budgets are affine and
@@ -153,45 +156,43 @@ pub enum AgreementOutcome {
 // ---------------------------------------------------------------------------
 
 /// The complete output of one pure program evaluation: proposed events,
-/// declared effect intents, an optional immediate result, the explanation,
-/// and consumed-work accounting. A `Transition` performs nothing.
+/// proposed effects, an optional immediate result, the explanation, and
+/// consumed-work accounting. A `Transition` performs nothing.
 pub struct Transition {
     events: EventProposals,
-    effects: EffectIntents,
+    effects: EffectProposals,
 }
 
 /// The bounded, ordered set of event proposals inside one `Transition`.
-/// Bounded by `EventProposalLimit` at construction.
+/// Bounded by `EventProposalLimit` at construction. `EventProposal` is the
+/// event owner's noun, carried here — admitted only by the event owner's
+/// single admission operation at an expected Cut.
 pub struct EventProposals {
     proposals: Vec<EventProposal>,
 }
 
-/// One proposed domain fact at a typed coordinate. Declared here; admitted
-/// only by the event owner's single admission operation at an expected Cut.
-/// A proposal is not authoritative and never becomes so inside this owner.
-pub struct EventProposal {
-    body: EventProposalBody,
+/// The bounded, ordered set of effect proposals inside one `Transition`.
+/// Bounded by `EffectProposalLimit` at construction.
+pub struct EffectProposals {
+    proposals: Vec<EffectProposal>,
 }
 
-/// The bounded, ordered set of effect intents inside one `Transition`.
-/// Bounded by `EffectIntentLimit` at construction.
-pub struct EffectIntents {
-    intents: Vec<EffectIntent>,
-}
-
-/// One durable intent to affect the outside world: the port family, the
-/// typed request role, the recovery posture, and the identity under which
-/// duplication is recognized. Declared here; realized only through the
-/// runtime's REQUEST and PEND operations, a fresh Attempt, and a typed port.
-pub struct EffectIntent {
+/// One proposed external effect: the port family, the typed request role,
+/// the recovery posture, and the identity under which duplication is
+/// recognized. Inert data — it performs nothing and commits nothing. Only
+/// the runtime's REQUEST and PEND admission strengthens it into the durable,
+/// runtime-owned `EffectIntent`, exactly as only event admission strengthens
+/// an `EventProposal` into an `AcceptedEvent`.
+pub struct EffectProposal {
     port_family: PortFamilyId,
 }
 
-/// One complete bounded batch of effect intents built by the atomic-planning
-/// recursion lane. The batch is data; constructing it crosses nothing.
-/// If the recursion refuses, no batch exists and nothing external happened.
+/// One complete bounded batch of effect proposals built by the atomic-
+/// planning recursion road. The batch is data; constructing it crosses
+/// nothing. If the recursion refuses, no batch exists and nothing external
+/// happened.
 pub struct EffectBatch {
-    intents: EffectIntents,
+    proposals: EffectProposals,
 }
 
 // ---------------------------------------------------------------------------
@@ -206,9 +207,11 @@ pub enum OperationPosture {
     Ask,
     /// Admit local event-publication intent once applicable requirements close.
     Do,
-    /// Durably admit an external `EffectIntent` and return without waiting.
+    /// Admit this operation's effect proposal as a durable, runtime-owned
+    /// `EffectIntent` and return without waiting.
     Request,
-    /// Durably admit the same intent and drive one immediate bounded Attempt.
+    /// Admit the same proposal durably and drive one immediate bounded
+    /// Attempt.
     Pend,
 }
 
@@ -219,7 +222,7 @@ pub enum OperationPosture {
 /// does not close refuses at checked construction.
 pub struct RecursionWitness {
     depth: RecursionDepthLimit,
-    interleaved_effects: EffectIntentLimit,
+    interleaved_effects: EffectProposalLimit,
 }
 
 /// Declared, portable semantic work as a function of the affected input set —
@@ -254,10 +257,10 @@ pub struct EventProposalLimit {
     limit: u32,
 }
 
-/// Effect-class copyable limit on effect intents in one `Transition` or one
-/// `EffectBatch`.
+/// Effect-class copyable limit on effect proposals in one `Transition` or
+/// one `EffectBatch`.
 #[derive(Clone, Copy)]
-pub struct EffectIntentLimit {
+pub struct EffectProposalLimit {
     limit: u32,
 }
 
