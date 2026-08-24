@@ -27,23 +27,28 @@ ProgramImage
 ```
 
 - A `ProgramDescriptor` is authored data: operations, inputs, outputs, source and Cut requirements, effect posture, bounds, refusal families, and explanation relationships.
-- A `Program` is the checked semantic form. Checked construction refuses a descriptor that is structurally open, unbounded, or self-contradictory.
+- A `Program` is the checked semantic form. Checked construction refuses a descriptor that is structurally open, unbounded, or self-contradictory (`ConstructionRefusal`, composing the gate's own typed bodies — no fourth refusal vocabulary).
 - An `ExecutionForm` is the portable execution representation: explicit operators, control flow, value movement, frame layout, captures, charging points, boundary-request points, and continuation layout.
-- A `ProgramImage` binds the semantic commitment and the execution commitment with the operation table, schema closure, required port profiles, bounds, and entrypoints.
+- A `ProgramImage` binds the semantic commitment and the execution commitment with the operation table, schema closure, required port profiles, bounds, entrypoints, and packaging.
 
 The execution representation never becomes semantic truth by being executable. The semantic commitment and the execution commitment remain distinct commitments inside one artifact.
 
+**Packaging (owner-ruled, carried).** Three lawful roads carry an image's components — `SelfContained` (everything inline), `ImmutableBound` (components referenced by exact content digest from an immutable store), and `Hybrid` — all satisfying the same dual-form closure and standalone-inspection requirement. **`SelfContained` is the paved-road default** (asymmetric classification: a lawful override selects another road; the depot row records the selection). An unresolvable or digest-mismatched component reference refuses the image.
+
 ## Transition: what one evaluation produces
 
-The paved operation shape is a pure bounded function:
+The paved operation shape is a pure bounded function (declared in `ops.rs`; profiles arrive as explicit arguments, never through ambient lookup):
 
 ```rust
-fn decide(
-    snapshot: &Snapshot,
-    input: Input,
+pub fn decide(
+    profile: &EvaluationProfile,
+    inputs: &DecisionInputs,
+    input: OperationInput,
     budget: &mut SemanticWorkBudget,
 ) -> Result<Transition, DecisionRefusal>;
 ```
+
+`DecisionInputs` is the frozen typed input bundle — the source set and the exact Cuts every input was frozen at, binding the view-owned Fix values and admitted observations the application supplies. (Draft spelling; it replaces the earlier illustrative `Snapshot`, which no owner declared.)
 
 A `Transition` carries event proposals, effect proposals, and an optional immediate result, together with explanation and consumed-work accounting. A program evaluation:
 
@@ -83,15 +88,17 @@ The Program owner owns all ProgramImage validation. The gate is one staged stren
 
 ```text
 untrusted image bytes or locally built image
-    → bounded decode
+    → bounded decode                              (DecodedProgramImage)
     → structural closure
     → Semantic Form validation
-    → recursion and bound validation
+    → recursion and bound validation              (SemanticImage)
     → independent lowering agreement
-    → Execution Form validation
+    → Execution Form validation                   (AgreementCheckedImage)
     → effect, capability, source, and profile closure
     → ExecutableProgramImage
 ```
+
+The ladder is affine typestate: each stage is a sealed constructor consuming the prior value and returning the stronger type or a typed `ImageRefusal`. From the executable image onward, states are durable and crash-recoverable and belong to the runtime owner's enum-plus-record custody, not compile-time typestate.
 
 **One owner, two judgment roads.** The Program owner owns the Semantic-to-Execution lowering law and consumes its agreement result, but the production lowerer and the independent agreement route must not share load-bearing lowering or verdict logic. Every locally or externally produced image crosses the same agreement gate.
 
@@ -126,7 +133,11 @@ The application owns its concrete models and vocabulary — its eligibility mode
 - information-loss crossings: every lossy crossing (quantize, redact, summarize, truncate, sample, aggregate, interval-to-point) states what it discarded. No surprise midpoint, no silent zero, no distribution silently becoming a point estimate, and no bare `confidence: f64` standing in for any of this;
 - `EvidenceRequirement` as a value: a typed description of what additional admitted evidence could close a decision. It is consumed by the shared logic axis `Decision::Defer(EvidenceRequirement)`. The requirement performs nothing; the application's acquisition policy later chooses REQUEST or PEND, a source, a deadline, and authority.
 
-There is no universal `KnowledgeEnvelope`, and no universal `Estimate<T>` until two concrete application families prove that abstraction. Names are module-scoped: this owner's `Calibration` is semantic model calibration and shares nothing with any physical-resource calibration another owner declares.
+Application content stays application vocabulary throughout: premises, dependence declarations, loss policies, and evidence questions are carried as **schema-bound statements** (`SchemaBoundStatement` — a schema commitment plus canonical statement commitment), so ThreadPak binds without interpreting. A declared lossy crossing carries its kind (`LossKind`: exact-to-interval, exact-to-distribution, estimate-to-estimate), both claims, the selecting policy, exactly what was discarded, its reversibility posture, its disclosure statement, and its evidence Cut.
+
+There is no universal `KnowledgeEnvelope`, and no universal `Estimate<T>` until two concrete application families prove that abstraction — estimate types themselves are application Rust (the acceptance witness binds application-owned estimates through these relationships). Names are module-scoped: this owner's `Calibration` is semantic model calibration and shares nothing with any physical-resource calibration another owner declares.
+
+The knowledge operations are `bind_claim`, `condition`, and `declare_loss` (`ops.rs`), each consuming the affine `KnowledgeBudget` and refusing with `KnowledgeRefusal`.
 
 ## Bounds
 
@@ -135,18 +146,25 @@ Owner-local bound types, classified under the seven closed classes of root law; 
 ```text
 SemanticWorkBudget     Work        affine — charging consumes, no widening exists
 RecursionDepthLimit    Work        copyable limit
+DecodeDepthLimit       Work        copyable limit
 EventProposalLimit     Output      copyable limit
+OutputByteLimit        Output      copyable limit
 EffectProposalLimit    Effect      copyable limit
 ResultValueLimit       Result      copyable limit
 SuspensionLimit        Suspension  copyable limit
+MemoryByteLimit        Memory      copyable limit
+ImageByteLimit         Memory      copyable limit
+ComponentCountLimit    Memory      copyable limit
 KnowledgeBudget        Work        affine — charging consumes, no widening exists
 ```
 
-The semantic work formula is declared, portable work as a function of the affected input set — never CPU cycles, wall time, or scheduler observations. A result limit checked only after unbounded work is not a bound.
+`DeclaredBounds` is the complete roster one descriptor or image carries. The semantic work formula is declared, portable work as a function of the affected input set — never CPU cycles, wall time, or scheduler observations; its terms scale with dimensions of the shared portable work-dimension register (`WorkDimensionId`, a depot closed roster), sequential composition sums, and choice takes the maximum lawful branch bound. A result limit checked only after unbounded work is not a bound.
+
+**Profiles.** The owner-declared configuration algebra: `EvaluationProfile` (the selected bound roster one decide runs under), `LoweringProfile` (Execution Form grammar and semantic-kernel inventory), `ImageDecodeProfile` (the decode bound algebra). Operations receive the selected profile as an explicit argument; the selected rows live in `depot/program.md`, and nothing is fetched ambiently.
 
 ## Least authority and inspection
 
-Every Program yields a static `RequirementsProjection`: which event sources it reads, which exact Cuts it requires, which frames and relations it traverses, which ports it may request, which capabilities it requires, which bounds it consumes, which protected fields may cross, and which suspension and recovery postures exist. The projection is not a grant and proves nothing about runtime behavior; Bvisor compares it against installed authority and observed crossings.
+Every Program yields a static `RequirementsProjection`: which event sources it reads, which exact Cuts it requires, which frames and relations it traverses, which ports it may request, which capabilities it requires, which bound classes it consumes, which protected fields may cross, and its suspension ceiling. Recovery postures are **cited, never mirrored**: the projection references port operations, and each operation's declared `RecoveryContract` carries its posture — restating postures here would create a mirror that drifts. The projection is not a grant and proves nothing about runtime behavior; Bvisor compares it against installed authority and observed crossings.
 
 Every stage of this owner is inspectable without execution, and every evaluation answers the progressive-explanation rail: concise description, typed semantic signature, structured explanation from the same evaluation, and complete definitional expansion. A short description may omit detail; it may never contradict the expansion.
 
@@ -160,7 +178,7 @@ Each entry follows the no-orphan rule: fact, owner, establishing operation, carr
 | Whether one invocation may run now | runtime and Bvisor | invocation admission: runtime binds Turn, inputs, Cuts, generation, semantic bounds, recovery posture; Bvisor binds grants, ports, reservations, clock domains, deadline, fresh Attempt | admission request referencing an `ExecutableProgramImage` | an executable image is not an admitted invocation | Carries owner ruling (2026-08-24, three-gate image law) |
 | External effect realization | runtime (REQUEST and PEND admission mint the durable `EffectIntent`), Bvisor, port | durable intent admission, fresh Attempt, typed port crossing | `EffectProposal` and `EffectBatch`, Program-declared | a proposal performs nothing; a Transition never executes or admits an effect | Derives from sync-first rail (`ARCHITECTURE.md`, "The rails" 8) |
 | Domain-fact acceptance | event | the one event admission operation at an expected Cut | `EventProposal` (event-owned noun), carried in the Transition | a Transition proposes and never accepts; there is no second admission primitive anywhere | Carries owner ruling (2026-08-24, single-admission law) |
-| Derived inputs at exact Cuts | view | pull recomputation or push maintenance under the parity law | typed snapshot and Fix inputs consumed by `decide` | a program reads explicit frozen inputs only; no ambient reads | Carries root law (`ARCHITECTURE.md`, "The two lanes") |
+| Derived inputs at exact Cuts | view | pull recomputation or push maintenance under the parity law | typed `DecisionInputs` binding view-owned Fix inputs, consumed by `decide` | a program reads explicit frozen inputs only; no ambient reads | Carries root law (`ARCHITECTURE.md`, "The two lanes") |
 | Application effect operations | port (grammar), application (declaration) | port contract declaration | typed port request and response families | the port grammar owns the boundary; no port family is declared inside this owner | Carries root law (`ARCHITECTURE.md`, "One machine") |
 | Evidence acquisition after Defer | runtime drives; port acquires; event admits | acquisition policy selects REQUEST or PEND; observation re-enters through ordinary admission at a new Cut | `EvidenceRequirement` value inside `Decision::Defer` | the requirement performs no effect and grants nothing | Carries owner ruling (2026-08-24, Knowledge seat) |
 | Generated realization | Macroonz (published toolchain dependency) | build-time generation of descriptors, plumbing, and harness pressure — including independent pressure on both Gate 1 roads | generated Rust and descriptors | Macroonz never owns meaning; every generated implementation is replaceable by hand-written Rust with identical ThreadPak meaning; no generated route both produces a material claim and its sole expected answer | Carries root law (`ARCHITECTURE.md`, "Owners are not directories") |
@@ -172,6 +190,8 @@ Three owner-local families, each with a typed owner, the violated law, the offen
 - `DecisionRefusal` — a transition could not be lawfully produced: unsatisfied input requirement, bound exhaustion, recursion-witness violation, posture violation.
 - `ImageRefusal` — the gate refused an image: bounded-decode failure, structural openness, semantic-form violation, recursion or bound violation, `LoweringMismatch`, execution-form violation, closure failure, or agreement-not-established.
 - `KnowledgeRefusal` — a conditioning or binding could not be lawfully produced: stale Cut, missing assumption closure, undeclared information loss, calibration mismatch, budget exhaustion.
+
+`ConstructionRefusal` composes the same typed bodies for checked construction — no fourth vocabulary. Every refusal body is a typed role (a locator, a closed clause roster, or an exact measured fact); no refusal carries an opaque byte payload, and refusal prose lives in the depot keyed by refusal identity, adding no variant and no condition.
 
 ## Hostile denominator
 
@@ -190,8 +210,13 @@ The falsifiers this owner's contract must survive. Each names a defect the gate,
 
 ## Draft-name notes
 
-`CandidateExecutionForm`, `AgreementEstablished`, `DisagreementEstablished`, `AgreementNotEstablished`, and `LoweringMismatch` carry the ruled meanings under draft spellings minted in this type pass; renaming any of them is a taste decision that changes no law.
+`CandidateExecutionForm`, `AgreementEstablished`, `DisagreementEstablished`, `AgreementNotEstablished`, `LoweringMismatch`, `DecisionInputs`, `SemanticImage`, and `AgreementCheckedImage` carry the ruled meanings under draft spellings minted in this type pass; renaming any of them is a taste decision that changes no law.
 
 ## Escalations
 
-None. Every law stated here carries or derives from a ruled disposition; no new closure requiring an explicit mint was encountered.
+Recorded, not closed — owner-derived machining, no taste fork open:
+
+1. **Measure algebra profile.** `DecreasingMeasure`'s exact representation (bounded naturals and lexicographic tuples, recovered from the archived corpus) closes with its own profile pass.
+2. **Work-dimension register.** The exact roster and per-dimension units behind `WorkDimensionId` close with the work-profile pass; nine recovered candidate clusters are recorded in `depot/program.md`.
+3. **Requirement-composition terminals.** A recovered six-terminal composition outcome family for `EvidenceRequirement` sits in `depot/program.md` as a deferred candidate; it enters with its first consumer at a construction cut, not before.
+4. **Image profile version.** The archived corpus names an image-profile version distinct from the image-format version; the distinction is unresolved and preserved in `depot/program.md`, and no fourth version identity is minted until it earns one.
