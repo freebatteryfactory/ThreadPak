@@ -1,9 +1,11 @@
 //! # view — role-graph declarations
 //!
 //! The derived-result owner's nouns. This file declares roles and the law each
-//! role carries; behavior lives in this owner's thin operations, and nothing in
-//! this file is authority — every resident is derived from accepted history at
-//! exact Cuts and is rebuildable (see `README.md`, "The wall").
+//! role carries; behavior lives in this owner's thin operations. Every derived
+//! resident is rebuildable from accepted history at exact Cuts; the read-side
+//! authority roles declared here (`ReadGrant`, `ProtectedResolutionGrant`) are
+//! declaration seats only — no view operation mints, advances, or widens
+//! authority (see `README.md`, "The wall").
 //!
 //! The `use` declarations below are this owner's declared dependency edges:
 //! view depends on core vocabulary and on the event owner's authority nouns,

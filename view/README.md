@@ -9,7 +9,7 @@ This document states product law: what ThreadPak defines. No sentence here claim
 Accepted history is not a derived view. That single separation is this owner's reason to exist, and it is the machine's honesty contract (carries: `ARCHITECTURE.md` — What owns fact; rail 1).
 
 - Every resident of this owner — query results, Fixes, Views, subscriptions, temporal monitors, selection masks, materializations, DataBlocks — is **derived and rebuildable** from accepted history at exact Cuts.
-- Nothing here ever becomes authority. When a maintained result disagrees with accepted history, the maintained result is stale, corrupt, incomplete, or wrong — never the history.
+- No derived resident ever becomes authority. When a maintained result disagrees with accepted history, the maintained result is stale, corrupt, incomplete, or wrong — never the history. The read-side authority roles declared below (`ReadGrant`, `ProtectedResolutionGrant`) are declaration seats, not derived results; no view operation mints, advances, or widens them.
 - The illegal dependency this wall forbids: no event-owner operation may consume a derived result as an input to admission, ordering, or authority. Acceleration flows downstream only.
 - The refusal that proves the boundary: a derived value presented where accepted authority is required is refused by type — no view type converts into an event-owner authority type, and no view operation mints, advances, or amends a Cut, an `AuthoritySequence` position, or an accepted fact.
 
