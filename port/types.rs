@@ -1,14 +1,24 @@
 //! Port owner — role declarations.
 //!
 //! Declarations only: the nouns of the boundary grammar. No behavior lives
-//! here; thin operations arrive beside this file, and guarded construction
-//! arrives with them. Nothing in this file claims implementation support.
+//! here; the thin operation signatures live in `ops.rs` beside this file, and
+//! guarded construction arrives with them. Nothing in this file claims
+//! implementation support.
 //!
 //! Foreign roles referenced by name and declared by their own owners:
-//! `AttemptId` (Bvisor), `EffectIntentId` and `TurnId` (runtime),
-//! `Cut` (event), `AcceptedHlc` (event chronology).
-//! Their declaration seats are fixed by the dependency probe, never by this
-//! file. Referencing a foreign role grants nothing and mints nothing.
+//! `AttemptId` (Bvisor), `TurnId` (runtime), `EffectIntentId` and
+//! `AbsoluteDeadlineId` (runtime — minted with its durable-EffectIntent and
+//! deadline families), `Cut` (event), `AcceptedHlc` (event chronology),
+//! `SchemaId` and `SchemaVersion` (core schema). Their declaration seats are
+//! fixed by the dependency probe, never by this file. Referencing a foreign
+//! role grants nothing and mints nothing.
+//!
+//! No identity in this file chooses its own byte width: every identity and
+//! version interior cites its row in `depot/port.md`, which cites the
+//! identity/canon profile. A payload is opaque bounded bytes under a declared
+//! role; the machine-wide byte-role register is the core canon owner's seam.
+
+use core::num::{NonZeroU32, NonZeroU64};
 
 // ---------------------------------------------------------------------------
 // Identity roles
@@ -18,43 +28,74 @@
 /// semantic owner (storage by the event owner, external effects by programs,
 /// observation ports below). Role-distinct from every other identity even
 /// where byte widths match.
-pub struct PortFamilyId(/* guarded */ u128);
+pub struct PortFamilyId {
+    /* fresh-opaque identity; width per depot/port.md row port.family-id-width
+     * (identity profile) */
+}
 
 /// Identifies one operation inside one family. Meaningless without its
 /// `PortFamilyId`; two families may reuse ordinals without relation.
-pub struct PortOperationId(/* guarded */ u32);
+pub struct PortOperationId {
+    /* registered id; width per depot/port.md row port.registered-id-width —
+     * that row preserves a recovered contradiction (u16 register law vs the
+     * previously declared u32) */
+}
 
 /// Identifies one physical request instance. Minted once per issued request,
 /// never reused across Attempts, retries, or reconnects. A carrier-scoped
 /// correlation identity never substitutes for it.
-pub struct PortRequestId(/* guarded */ u128);
+pub struct PortRequestId {
+    /* fresh-opaque identity; width per depot/port.md row
+     * port.request-id-width */
+}
 
 /// Carrier-scoped correlation identity supplied by a transport adapter.
 /// It correlates frames on one carrier and nothing else: it never
 /// substitutes for `PortRequestId`, never binds an Attempt, and never
-/// carries authority across the boundary.
-pub struct CarrierRequestId(/* guarded */ u128);
+/// carries authority across the boundary. Equal widths with `PortRequestId`
+/// are exactly the substitution hazard the role split exists to refuse.
+pub struct CarrierRequestId {
+    /* fresh-opaque identity; width per depot/port.md row
+     * port.request-id-width */
+}
 
 /// Version of one family's declared contract. A response role, refusal
 /// role, or bound from one version never validates material issued under
-/// another without an explicit, fallible conversion.
-pub struct PortContractVersion(/* guarded */ u32);
+/// another without an explicit, fallible conversion. Role-distinct from
+/// every other version line — a contract version upgrades nothing else.
+pub struct PortContractVersion {
+    /* scoped version scalar (Class C); width per depot/port.md row
+     * port.version-scalar-width */
+}
 
 // ---------------------------------------------------------------------------
 // Contract declarations
 // ---------------------------------------------------------------------------
 
-/// The declared boundary of one port family: its closed operation set and
-/// the laws every operation in it obeys. Declared by the family's semantic
-/// owner using this grammar; validated before any request is admitted.
-/// A contract declaration is data. It grants nothing and performs nothing.
+/// The declared boundary of one port family: its closed operation set, its
+/// closed value-role roster, and the laws every operation in it obeys.
+/// Declared by the family's semantic owner using this grammar; validated by
+/// `declare_contract` before any request is admitted. A contract declaration
+/// is data. It grants nothing and performs nothing.
 pub struct PortContract {
     family: PortFamilyId,
     version: PortContractVersion,
     /// Closed set: an operation outside it does not exist at this boundary.
     operations: PortOperationSet,
+    /// Closed set: the roster `PortContractRefusal::UnknownValueRole` checks
+    /// against. A role not bound here does not exist at this boundary.
+    roles: PortValueRoleSet,
     request_byte_limit: PortRequestByteLimit,
     response_byte_limit: PortResponseByteLimit,
+}
+
+/// A family contract that survived `declare_contract` validation. Private
+/// construction: possession proves the declaration's rosters close, its
+/// recovery routes exist, and its bounds fit the admitted profile. Requests
+/// are validated only against an admitted contract, never a raw declaration.
+#[must_use]
+pub struct AdmittedPortContract {
+    contract: PortContract,
 }
 
 /// The closed roster of operations one contract declares. Bounded;
@@ -75,7 +116,21 @@ pub struct PortOperation {
 /// Names one schema-bound value role crossing the boundary. A role is a
 /// semantic commitment, not a byte layout; equal bytes under different
 /// roles never substitute.
-pub struct PortValueRole(/* guarded */ u64);
+pub struct PortValueRole {
+    /* registered id; width per depot/port.md row port.registered-id-width */
+}
+
+/// Binds one declared value role to the schema commitment that gives its
+/// bytes meaning. The binding is contract data; it grants nothing.
+/// (`SchemaId` and `SchemaVersion` are core-schema roles.)
+pub struct PortValueRoleBinding {
+    role: PortValueRole,
+    schema: SchemaId,
+    schema_version: SchemaVersion,
+}
+
+/// The closed roster of value-role bindings one contract declares.
+pub struct PortValueRoleSet(/* guarded, bounded */ Vec<PortValueRoleBinding>);
 
 // ---------------------------------------------------------------------------
 // Recovery contracts — operation-specific, never one universal enum
@@ -86,6 +141,11 @@ pub struct PortValueRole(/* guarded */ u64);
 /// at-least-once, nonreplayable. Each capability binds its exact routes;
 /// a bare tag with no bindings is not a recovery contract. Every claimed
 /// route must exist before the irreversible Attempt.
+///
+/// The recovered corpus carries wider rosters for this declaration (a
+/// five-axis and a nine-property form); those rows are preserved in
+/// `depot/port.md` and widen this shape only when the runtime's
+/// effect-admission pass consumes them.
 pub struct RecoveryContract {
     /// Present only when the external system honors same-key retry.
     same_key: Option<SameKeyIdempotency>,
@@ -135,11 +195,17 @@ pub enum ReplaySafety {
 /// Generation of one port-grant relationship. Role-specific — no shared
 /// authority-generation type exists until two real grant families prove
 /// identical attenuation behavior (the core owner's extraction bar).
-pub struct PortGrantGeneration(/* guarded */ u64);
+pub struct PortGrantGeneration {
+    /* scoped generation scalar (Class C); width per depot/port.md row
+     * port.version-scalar-width */
+}
 
 /// Generation of one quarantine-grant relationship. Role-distinct from
 /// `PortGrantGeneration` even where widths match.
-pub struct QuarantineGrantGeneration(/* guarded */ u64);
+pub struct QuarantineGrantGeneration {
+    /* scoped generation scalar (Class C); width per depot/port.md row
+     * port.version-scalar-width */
+}
 
 /// The admitted authority to attempt operations of one family under one
 /// scope, current under one grant generation. This is the admitted
@@ -166,8 +232,8 @@ pub struct QuarantineGrant {
 // ---------------------------------------------------------------------------
 
 /// One physical request: exactly one operation of one family, bound to one
-/// Attempt, one grant, and one absolute deadline. Issued once; a retry is
-/// a new request under a fresh Attempt.
+/// Attempt, one grant, and one carried deadline allowance. Issued once; a
+/// retry is a new request under a fresh Attempt.
 pub struct PortRequest {
     request: PortRequestId,
     family: PortFamilyId,
@@ -177,17 +243,55 @@ pub struct PortRequest {
     attempt: AttemptId,
     /// Authority this request executes under, at issue-time generation.
     grant_generation: PortGrantGeneration,
-    /// Carried, never minted here: the operation's absolute deadline or a
-    /// narrower allowance derived from it. Nothing downstream extends it.
+    /// Carried, never minted here: the operation's deadline allowance,
+    /// rebased into a named clock domain. Nothing downstream extends it.
     deadline: CarriedAbsoluteDeadline,
     /// Request payload under the operation's declared request role.
     payload: PortRequestPayload,
 }
 
-/// The absolute deadline as carried across the boundary. Minting and
-/// enforcement belong to the runtime deadline owner; this role exists so
-/// no adapter signature can accept a request without one.
-pub struct CarriedAbsoluteDeadline(/* guarded */ u64);
+/// A request that survived pre-flight validation against its admitted
+/// contract and grant. Private construction: possession proves the family,
+/// operation, version, grant, bounds, and deadline checks ran. The only
+/// request form an adapter may dispatch. (Draft spelling; renaming changes
+/// no law.)
+#[must_use]
+pub struct DispatchableRequest {
+    request: PortRequest,
+}
+
+/// The deadline allowance as carried across the boundary. Minting and
+/// enforcement belong to the runtime deadline owner; this role exists so no
+/// adapter signature can accept a request without one, and so a value from
+/// one clock domain cannot wander into another. What crosses is a derived
+/// allowance rebased into this boundary's clock domain — never a
+/// transplanted raw instant, and never the `DeadlinePolicy` itself. Every
+/// derivation narrows; retry, reconnect, and carrier conversion cannot
+/// reset it.
+pub struct CarriedAbsoluteDeadline {
+    /// The runtime-owned deadline commitment this allowance derives from.
+    source: AbsoluteDeadlineId,
+    /// The clock domain the allowance is rebased into. Cross-domain use
+    /// refuses at validation; there is no implicit conversion.
+    domain: ClockDomainId,
+    /// The clock profile the rebase was performed under.
+    profile: ClockProfileVersion,
+    allowance: CarriedAllowance,
+}
+
+/// The two lawful allowance forms. Both only narrow.
+pub enum CarriedAllowance {
+    /// The absolute expiry point, rebased into the named domain.
+    AbsoluteExpiry {
+        /* expiry point in the named domain; representation closes with the
+         * clock profile rows (depot/port.md) */
+    },
+    /// A narrower remaining allowance derived from the expiry.
+    RemainingAllowance {
+        /* unsigned span (core Duration role); representation closes with
+         * the clock profile rows */
+    },
+}
 
 /// Request bytes under a declared role, within the family's request byte
 /// limit. Opaque to adapters beyond what the role admits.
@@ -195,7 +299,8 @@ pub struct PortRequestPayload(/* guarded, bounded */ Vec<u8>);
 
 /// Foreign response material as received: a claim, not a response. It
 /// becomes a `ValidatedResponse` only through response validation, or a
-/// typed refusal. Holding one proves delivery of bytes and nothing else.
+/// typed refusal. Holding one proves delivery of bytes and nothing else —
+/// foreign bytes have exactly one lawful morphism, validation.
 pub struct ForeignResponse {
     /// The request the carrier claims this answers — a claim to verify,
     /// not a binding.
@@ -212,6 +317,8 @@ pub struct ValidatedResponse {
     request: PortRequestId,
     attempt: AttemptId,
     role: PortValueRole,
+    contract_version: PortContractVersion,
+    grant_generation: PortGrantGeneration,
     payload: /* bounded, role-checked */ Vec<u8>,
 }
 
@@ -228,26 +335,90 @@ pub struct LateResponseEvidence {
 // Clock observation ports — two contracts, never one
 // ---------------------------------------------------------------------------
 
-/// Identifies one physical clock domain. Values from different domains
-/// never compare, subtract, or rebase across domains without an explicit
-/// fallible conversion declared by the temporal owner consuming them.
-pub struct ClockDomainId(/* guarded */ u64);
+/// Identifies one physical clock domain: one clock lineage (one boot of one
+/// clock kind), minted fresh, never derived from content. Values from
+/// different domains never compare, subtract, or rebase across domains
+/// without an explicit fallible conversion declared by the temporal owner
+/// consuming them.
+pub struct ClockDomainId {
+    /* fresh-opaque identity; width per depot/port.md row
+     * port.clock-domain-id-width */
+}
 
-/// Declared profile of one clock source: identity, version, resolution,
-/// monotonicity claim, regression and suspend behavior. A profile is a
-/// claim roster the harness qualifies — a compile is not a clock.
+/// Version of one clock source's declared profile. Role-distinct from
+/// `PortContractVersion` — a contract version and a clock profile version
+/// answer different questions and never substitute.
+pub struct ClockProfileVersion {
+    /* scoped version scalar (Class C); width per depot/port.md row
+     * port.version-scalar-width */
+}
+
+/// Declared profile of one clock source. A profile is a claim roster the
+/// harness qualifies — a compile is not a clock. Every field is a declared
+/// fact; none is inferred from a host library.
 pub struct ClockSourceProfile {
     domain: ClockDomainId,
-    profile_version: PortContractVersion,
+    profile: ClockProfileVersion,
+    /// The declared reading resolution.
+    resolution: DeclaredResolution,
+    /// What monotonicity, if any, this source claims.
+    monotonicity: MonotonicityClaim,
+    /// The declared behavior when the source moves backward.
+    regression: RegressionBehavior,
+    /// The declared behavior across host suspend and resume.
+    suspend: SuspendBehavior,
+    /// How observations without stated uncertainty are treated.
+    uncertainty: UncertaintyPosture,
+}
+
+/// The declared reading resolution of one clock source.
+pub struct DeclaredResolution {
+    /* declared granularity; roster closes with the clock profile rows
+     * (depot/port.md) */
+}
+
+/// The monotonicity claim one clock source declares.
+pub struct MonotonicityClaim {
+    /* declared claim; roster closes with the clock profile rows */
+}
+
+/// The declared regression behavior of one clock source.
+pub struct RegressionBehavior {
+    /* declared behavior; roster closes with the clock profile rows */
+}
+
+/// The declared suspend/resume behavior of one clock source.
+pub struct SuspendBehavior {
+    /* declared behavior; roster closes with the clock profile rows */
+}
+
+/// How an observation whose uncertainty is unknown is treated. Unknown
+/// uncertainty is never zero uncertainty. Safety-relevant: the paved
+/// posture is refusal (depot/port.md row port.uncertainty-posture).
+pub enum UncertaintyPosture {
+    /// Assume the profile's configured maximum uncertainty.
+    DeclaredMaximum {
+        /* configured maximum; value in depot/port.md, currently withheld */
+    },
+    /// Refuse the observation.
+    RefuseUnknown,
 }
 
 /// A raw wall-time observation: foreign temporal material. It becomes
 /// accepted chronology only through the chronology owner's admission.
 /// It is never an `AcceptedHlc`, a `CommitPoint`, an order, or a Cut.
+/// Whether a reading carries per-observation uncertainty bounds or leans on
+/// the profile's posture is a recorded escalation (README, Escalation 1).
 pub struct RawWallObservation {
     domain: ClockDomainId,
-    /// Uninterpreted source value; interpretation belongs to admission.
-    reported: i128,
+    /// Uninterpreted source reading; interpretation belongs to admission.
+    /// Representation closes with the clock profile rows (depot/port.md).
+    reported: WallReading,
+}
+
+/// The uninterpreted wall reading role.
+pub struct WallReading {
+    /* signed reading; representation closes with the clock profile rows */
 }
 
 /// A raw monotonic observation in one clock domain. Process-local
@@ -255,7 +426,13 @@ pub struct RawWallObservation {
 /// clock domains. Consumed by the runtime deadline owner's rebase.
 pub struct RawMonotonicObservation {
     domain: ClockDomainId,
-    reported: u128,
+    /// Representation closes with the clock profile rows (depot/port.md).
+    reported: MonotonicReading,
+}
+
+/// The uninterpreted monotonic reading role.
+pub struct MonotonicReading {
+    /* unsigned reading; representation closes with the clock profile rows */
 }
 
 /// The wall-observation contract. Role-specific: this trait is not a
@@ -277,14 +454,16 @@ pub trait MonotonicObservationPort {
     ) -> Result<RawMonotonicObservation, MonotonicObservationRefusal>;
 }
 
-/// Names the domain and profile an observation is requested under.
+/// Names the domain and profile a wall observation is requested under.
 pub struct WallObservationRequest {
     domain: ClockDomainId,
+    profile: ClockProfileVersion,
 }
 
-/// Names the domain and profile an observation is requested under.
+/// Names the domain and profile a monotonic observation is requested under.
 pub struct MonotonicObservationRequest {
     domain: ClockDomainId,
+    profile: ClockProfileVersion,
 }
 
 // ---------------------------------------------------------------------------
@@ -303,16 +482,20 @@ pub struct QuarantineStoreRequest {
 
 /// Reference to the ingress-owned disposition fact. Declared here as a
 /// reference role only; the fact itself is owned by event ingress.
-pub struct QuarantineDispositionRef(/* guarded */ u128);
+pub struct QuarantineDispositionRef {
+    /* fresh-opaque identity; width per depot/port.md row
+     * port.request-id-width */
+}
 
-/// The declared retention envelope for one quarantine store: count, byte,
-/// and age ceilings, and the deletion route that makes expiry real.
-/// Key-shred deletion is lawful only where the quarantine holds its own
-/// key scope and the key authority was actually destroyed.
+/// The declared retention envelope for one quarantine store: the four
+/// guardrail ceilings — count, bytes, age, and work — and the deletion
+/// route that makes expiry real. Key-shred deletion is lawful only where
+/// the quarantine holds its own key scope and the key authority was
+/// actually destroyed.
 pub struct QuarantineRetention {
-    max_items: u32,
-    max_bytes: u64,
-    max_age_ticks: u64,
+    max_items: QuarantineItemLimit,
+    max_bytes: QuarantineByteLimit,
+    max_age: QuarantineAgeLimit,
     max_work: QuarantineWorkLimit,
     deletion: QuarantineDeletionRoute,
 }
@@ -336,29 +519,68 @@ pub struct QuarantineReceipt {
 }
 
 // ---------------------------------------------------------------------------
+// Profiles — the owner's configuration algebra. Selected values live in
+// depot/port.md and are passed into operations explicitly; no operation
+// reaches into an ambient registry.
+// ---------------------------------------------------------------------------
+
+/// The admitted ceilings a family declaration's bounds must fit — the
+/// profile `PortContractRefusal::BoundOutOfProfile` checks against.
+/// Selected values live in the depot; this type is the algebra.
+pub struct PortBoundsProfile {
+    max_request_bytes: PortRequestByteLimit,
+    max_response_bytes: PortResponseByteLimit,
+    max_operations: PortOperationCountLimit,
+    max_roles: PortValueRoleCountLimit,
+}
+
+// ---------------------------------------------------------------------------
 // Bounds — declared by contracts, enforced at physical admission
 // ---------------------------------------------------------------------------
 
 /// Ceiling on one request's payload bytes. Output class.
-pub struct PortRequestByteLimit(/* nonzero */ u64);
+pub struct PortRequestByteLimit(NonZeroU64);
 
 /// Ceiling on one response's accepted bytes; material beyond it refuses
 /// before allocation. Result class.
-pub struct PortResponseByteLimit(/* nonzero */ u64);
+pub struct PortResponseByteLimit(NonZeroU64);
+
+/// Ceiling on the operations one family contract may declare. Memory class.
+pub struct PortOperationCountLimit(NonZeroU32);
+
+/// Ceiling on the value-role bindings one family contract may declare.
+/// Memory class.
+pub struct PortValueRoleCountLimit(NonZeroU32);
+
+/// Ceiling on quarantined items retained under one disposition. Memory
+/// class.
+pub struct QuarantineItemLimit(NonZeroU32);
+
+/// Ceiling on quarantined bytes retained under one disposition. Memory
+/// class.
+pub struct QuarantineByteLimit(NonZeroU64);
+
+/// Ceiling on the age of quarantined material. Time class: the age names
+/// its clock domain — a tick count without a domain is not an age.
+pub struct QuarantineAgeLimit {
+    /* domain-bound span; closes with the clock profile rows
+     * (depot/port.md) */
+}
 
 /// Ceiling on the work one quarantine store or expiry pass may consume —
 /// the fourth guardrail dimension the quarantine contract promises.
 /// Work class.
-pub struct QuarantineWorkLimit(/* nonzero */ u64);
+pub struct QuarantineWorkLimit(NonZeroU64);
 
 // ---------------------------------------------------------------------------
-// Refusals — role-specific; exact body shapes finalize in the type pass
+// Refusals — role-specific; every variant is reachable by a public input
 // ---------------------------------------------------------------------------
 
 /// Refusal of a family contract declaration.
 pub enum PortContractRefusal {
     EmptyOperationSet,
     DuplicateOperation,
+    /// An operation names a value role absent from the contract's roster.
     UnknownValueRole,
     MissingRecoveryRoute,
     BoundOutOfProfile,
@@ -372,6 +594,9 @@ pub enum PortRequestRefusal {
     RequestBytesOverLimit,
     GrantAbsent,
     GrantGenerationStale,
+    /// The carried allowance names a clock domain this boundary does not
+    /// hold; cross-domain deadlines never convert implicitly.
+    DeadlineDomainMismatch,
     DeadlineAlreadyExpired,
 }
 
@@ -392,13 +617,19 @@ pub enum PortResponseRefusal {
 /// Refusal of a wall observation.
 pub enum WallObservationRefusal {
     UnknownDomain,
+    /// The requested profile is not the declared profile of the domain.
+    ProfileMismatch,
     SourceUnavailable,
     ProfileViolation,
+    /// The source stated no uncertainty and the profile's posture refuses
+    /// unknown uncertainty.
+    UncertaintyUnknown,
 }
 
 /// Refusal of a monotonic observation.
 pub enum MonotonicObservationRefusal {
     UnknownDomain,
+    ProfileMismatch,
     SourceUnavailable,
     ProfileViolation,
 }
@@ -407,6 +638,8 @@ pub enum MonotonicObservationRefusal {
 pub enum QuarantineRefusal {
     GrantAbsent,
     RetentionCeilingReached,
+    /// The store's work ceiling was exhausted before completion.
+    WorkCeilingExhausted,
     DeletionRouteUnavailable,
     PayloadOverLimit,
 }
