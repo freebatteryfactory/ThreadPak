@@ -37,7 +37,7 @@ The execution representation never becomes semantic truth by being executable. T
 
 ## Transition: what one evaluation produces
 
-The paved operation shape is a pure bounded function (declared in `ops.rs`; profiles arrive as explicit arguments, never through ambient lookup):
+The paved operation shape is a pure bounded function (its signature is declared in `ops.rs` as the function-type alias `DecideFn`, with the body landing at construction cut A3; profiles arrive as explicit arguments, never through ambient lookup):
 
 ```rust
 pub fn decide(
@@ -56,6 +56,8 @@ A `Transition` carries event proposals, effect proposals, and an optional immedi
 - proposes events; it never accepts them — event admission is the only domain-fact admission and belongs to the event owner;
 - proposes effects; it never performs or admits them — REQUEST and PEND admission mints the durable, runtime-owned `EffectIntent`, and realization belongs to the runtime, Bvisor, and port owners;
 - refuses with a typed `DecisionRefusal` when its inputs, bounds, or laws cannot be satisfied.
+
+**An effect proposal is complete.** `EffectProposal` names the port family, the named port operation and the exact contract version it is declared under, the typed request role, the canonical request-value commitment, and carries the typed request value itself — inert inside the `Transition`. The durable `EffectIntent` references the proposal by that commitment, and the runtime's publication contract keeps the proposal durably reachable, so the exact physical request is realizable from the intent without reconstruction. Recovery posture and duplication-recognition identity bind through the named operation's declared `RecoveryContract` — cited, never mirrored.
 
 If a program needs physical time or external evidence, it either receives an already-admitted observation as explicit input or produces a typed request. There is no ambient fallback.
 
@@ -98,7 +100,7 @@ untrusted image bytes or locally built image
     → ExecutableProgramImage
 ```
 
-The ladder is affine typestate: each stage is a sealed constructor consuming the prior value and returning the stronger type or a typed `ImageRefusal`. From the executable image onward, states are durable and crash-recoverable and belong to the runtime owner's enum-plus-record custody, not compile-time typestate.
+The ladder is affine typestate: each stage is a sealed constructor consuming the prior value and returning the stronger type or a typed `ImageRefusal`. Each stage's input carries what that stage judges — bounded decode yields the complete untrusted image record inside `DecodedProgramImage` (decode proves shape, never truth), and every declared roster in it remains unvalidated until its stage strengthens it. From the executable image onward, states are durable and crash-recoverable and belong to the runtime owner's enum-plus-record custody, not compile-time typestate.
 
 **One owner, two judgment roads.** The Program owner owns the Semantic-to-Execution lowering law and consumes its agreement result, but the production lowerer and the independent agreement route must not share load-bearing lowering or verdict logic. Every locally or externally produced image crosses the same agreement gate.
 

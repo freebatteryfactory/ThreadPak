@@ -8,8 +8,9 @@
 //! Cross-owner names are written bare and resolve to their owning contracts
 //! when the dependency probe seats real imports: `Cut`, `FederationCut`,
 //! `SourceSet`, `SourceSetId`, `EventProposal`, `ReferenceFrameId`,
-//! `AcceptedEvent` (event); `PortFamilyId`, `PortContractVersion`
-//! (port); `ContinuationByteLimit`, `DeadlinePolicy` (runtime); `SchemaId`,
+//! `AcceptedEvent` (event); `PortFamilyId`, `PortOperationId`,
+//! `PortContractVersion` (port); `ContinuationByteLimit`, `DeadlinePolicy`
+//! (runtime); `SchemaId`,
 //! `FieldId`, `BoundClass`, `Truth`, `Decision` (core). `EventProposal` is
 //! the event owner's noun — this owner carries it, never declares it. The
 //! durable `EffectIntent` record is runtime-owned; this owner declares only
@@ -283,9 +284,18 @@ pub struct ImageBytes {
 }
 
 /// An untrusted image after bounded decode and before any validation.
+/// Decode proves shape, never truth: the decoded record carries every
+/// declared roster the later stages judge — commitments, versions, the
+/// operation table, schema closure, port profiles, bounds, entrypoints,
+/// and packaging — and every one of those claims remains unvalidated until
+/// its stage strengthens it. The bytes commitment is evidence of exactly
+/// which received bytes produced this record.
 pub struct DecodedProgramImage {
     bytes: ImageBytesCommitment,
     format: ImageFormatVersion,
+    /// The decoded, still-untrusted image record — the material
+    /// `validate_semantic_image` judges. Possession claims nothing.
+    image: ProgramImage,
 }
 
 /// An image whose structure closed and whose Semantic Form and recursion and
@@ -382,18 +392,47 @@ pub struct EffectProposals {
     proposals: Vec<EffectProposal>,
 }
 
-/// One proposed external effect: the port family, the typed request role,
-/// the recovery posture, and the identity under which duplication is
-/// recognized. Inert data — it performs nothing and commits nothing. Only
-/// the runtime's REQUEST and PEND admission strengthens it into the durable,
-/// runtime-owned `EffectIntent`, exactly as only event admission strengthens
-/// an `EventProposal` into an `AcceptedEvent`.
+/// One proposed external effect, complete enough to later realize the exact
+/// physical request: the port family, the named port operation and the exact
+/// contract version it is declared under, the typed request role, the
+/// canonical request-value commitment, and the typed request value itself.
+/// Inert data — it performs nothing and commits nothing. Only the runtime's
+/// REQUEST and PEND admission strengthens it into the durable, runtime-owned
+/// `EffectIntent`, exactly as only event admission strengthens an
+/// `EventProposal` into an `AcceptedEvent`. The durable intent references
+/// this proposal by its commitment; the runtime's publication contract keeps
+/// the proposal durably reachable, so the exact physical request is
+/// realizable from the intent without reconstruction. Recovery posture and
+/// duplication-recognition identity bind through `operation`'s declared
+/// `RecoveryContract` — cited, never mirrored here.
 pub struct EffectProposal {
     port_family: PortFamilyId,
+    /// The named port operation this proposal requests — the referent of the
+    /// `RecoveryContract` citation above.
+    operation: PortOperationId,
+    /// The exact port contract version `operation` is declared under.
+    contract: PortContractVersion,
     request_role: SchemaId,
-    /* recovery posture and duplication-recognition identity bind through the
-     * named port operation's declared RecoveryContract — cited, never
-     * mirrored here */
+    /// Canonical commitment over the request value — what the durable
+    /// `EffectIntent` references. Must agree with `request`; neither field
+    /// is public.
+    commitment: RequestValueCommitment,
+    /// The typed request value, riding inert inside the `Transition`.
+    request: EffectRequestValue,
+}
+
+/// The canonical request value of one effect proposal, bound at construction
+/// to the proposal's declared `request_role` schema commitment. The canonical
+/// value body closes with the codec profile.
+pub struct EffectRequestValue {
+    /* canonical request-value body; closes with the codec profile */
+}
+
+/// The canonical-byte commitment of one effect proposal's request value.
+/// Evidence and reference identity — never authority, and never
+/// substitutable for the port response or any outcome fact.
+pub struct RequestValueCommitment {
+    /* canonical request-value digest; closes with the identity profile */
 }
 
 /// One complete bounded batch of effect proposals built by the atomic-
