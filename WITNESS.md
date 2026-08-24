@@ -29,7 +29,7 @@ Accordingly, in every cut:
 - no generic status wrapper;
 - no API introduced with the intention of replacing it later.
 
-The freeze that precedes the cuts consists of this contract together with the owner contracts — each owner's README, its `types.rs` role graph, its thin operation signatures, its exact crossings, and its refusal families. The freeze proves nothing and claims nothing green; it closes what the witnesses must prove and what the hostile denominator contains.
+The freeze that precedes the cuts consists of this contract together with the owner contracts — each owner's README law, its complete `types.rs` role graph, its thin semantic operation signatures, its profile and depot algebra with the initially selected rows, its exact crossings, and its refusal families. These close in the A0 contract-closure pass, and no cut begins before its owner's closure stands. The freeze proves nothing and claims nothing green; it closes what the witnesses must prove and what the hostile denominator contains.
 
 Where this document names a milestone, identity, or refusal, the exact public Rust spelling binds in the owning contract's type pass; the semantic role named here is the law the spelling must realize.
 
@@ -77,7 +77,7 @@ reopen after crash
 
 **Proves:** acceleration cannot dethrone authority.
 
-**Exercises:** the view owner contract (query, Fix, projection, temporal monitor, SelectionMask, materialization, DataBlock); the event owner contract as the source of exact Cuts; depot profiles.
+**Exercises:** the view owner contract (query, Fix, View maintenance, temporal monitor, SelectionMask, materialization, DataBlock); the event owner contract as the source of exact Cuts; depot profiles.
 
 **Scope:**
 
@@ -117,8 +117,8 @@ corrupt materialization treated as accepted history
 ```text
 ordinary Rust Program
 pure bounded transition
-knowledge bindings:
-    Estimate
+knowledge bindings over application-owned estimates:
+    ModelBinding
     Assumption
     Dependence
     Calibration
@@ -166,7 +166,7 @@ typed redacted rejection evidence
 optional protected quarantine
 ```
 
-The terminal milestone is object-specific: `ClaimAdmitted` discharges a ClaimFirst submission's retry duty; `EventAccepted` discharges a DomainFirst submission's retry duty. No earlier progress stage discharges retry, and the exposure projection (terminal-only versus progressive) is interface-selected with no ThreadPak-wide default. Domain-fact admission is owned solely by event; ingress records claim custody and claim resolution and owns no second domain admission primitive.
+The terminal milestone is object-specific: the claim-admission receipt (`ClaimAdmissionReceipt`) discharges a ClaimFirst submission's retry duty; the domain-admission receipt — bound to the submission's idempotency identity and the accepted event's publication — discharges a DomainFirst submission's retry duty. No earlier progress stage discharges retry, and the exposure projection (terminal-only versus progressive) is interface-selected with no ThreadPak-wide default. Domain-fact admission is owned solely by event; ingress records claim custody and claim resolution and owns no second domain admission primitive.
 
 **Required falsifiers:**
 
@@ -189,12 +189,13 @@ The quota falsifier must show typed capacity refusal without silent eviction: an
 
 **Proves:** honest contact with external reality.
 
-**Exercises:** the runtime owner contract (Turn, reconciliation) and its Bvisor family (AdmissionPlan, reservation custody, Attempt, AttemptReport); the port owner contract (typed request/response, recovery posture); the program owner contract as the origin of EffectIntents; the event owner contract for accepted evidence.
+**Exercises:** the runtime owner contract (Turn, EffectIntent admission, reconciliation) and its Bvisor family (AdmissionPlan, reservation custody, Attempt, AttemptReport); the port owner contract (typed request/response, recovery posture); the program owner contract as the origin of EffectProposals; the event owner contract for observations re-entering through ordinary admission.
 
 **Scope:**
 
 ```text
-EffectIntent
+EffectProposal
+EffectIntent admission
 Turn
 Bvisor AdmissionPlan
 fresh Attempt
@@ -226,7 +227,7 @@ reconciliation rewrites an earlier Attempt
 
 **Proves:** the complete local machine closes.
 
-**Exercises:** the runtime owner contract (checkpoint authority, delivery, drivers, replay, reconciliation obligations); the event owner contract for accepted checkpoint-advance records under runtime-owned checkpoint authority regions; the view owner contract for pull recovery; the program owner contract for the knowledge-acquisition loop; the port owner contract for PEND acquisition.
+**Exercises:** the runtime owner contract (checkpoint authority, its accepted checkpoint-advance records in runtime-owned checkpoint authority regions, their publication family, delivery, drivers, replay, reconciliation obligations); the view owner contract for pull recovery; the program owner contract for the knowledge-acquisition loop; the port owner contract for PEND acquisition.
 
 **Scope:**
 
