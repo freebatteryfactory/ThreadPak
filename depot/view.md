@@ -76,4 +76,4 @@ no horizon settling `Violated` over an unclosed source set.
 | Row | Value | Status |
 |---|---|---|
 | view.exact-history-read | `ExactHistoryRead` — the event owner's consumer-facing exact-read surface consumed by every pull-lane operation; declared by the event owner with its storage contract | closed at contract closure (assembly-reconciled) |
-| view.definition-state-split | whether `View` lawfully hides ViewDefinition and ViewState | escalated — probe card issued with this packet; the owner rules |
+| view.definition-state-split | RULED — split: `View` = the durable definition, `ViewState` = one maintained state at one `AppliedCut`; `MaterializationGeneration` stays the physical realization; `Projection` unminted | closed (owner ruling 2026-08-24) |

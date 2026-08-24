@@ -1,11 +1,14 @@
 //! # view — thin operation signatures
 //!
 //! Semantic signatures only: exact inputs, outputs, refusals, and bounds.
-//! No bodies — realization lands with construction cut A2, and the exact
-//! Rust ergonomics may still be machined at the guard pass without changing
-//! any contract stated here. Signatures are written in declaration form
-//! (trailing semicolon); nothing in this file executes, and nothing claims
-//! implementation support.
+//! Each operation is declared as a function-type alias (`…Fn`) so this file
+//! is valid Rust and the dependency probe sees compiler-visible edges — no
+//! bodies exist here, nothing executes, and nothing claims implementation
+//! support. Realization lands with construction cut A2, where each
+//! operation's implementation is pinned to its declared signature by a
+//! Macroonz-generated conformance assertion (`const _: ResolveFn<…> =
+//! resolve;` shape); exact Rust ergonomics may still be machined at the
+//! guard pass without changing any contract stated here.
 //!
 //! Every operation receives its profile and bounds as explicit typed
 //! arguments — no operation reads a depot row, a clock, an environment, or
@@ -21,8 +24,8 @@
 // Pull lane
 // ---------------------------------------------------------------------------
 
-/// Resolve one demand-driven question against accepted history at exact
-/// Cuts.
+/// `resolve` — resolve one demand-driven question against accepted history
+/// at exact Cuts.
 ///
 /// Inputs: the resolve profile (row/depth/fan-out selections), the typed
 /// query, the event owner's exact-read surface, the exact Cuts that answer
@@ -33,7 +36,7 @@
 /// source set, frame expectation violated. The row limit binds discovery
 /// before decode, join, sort, or materialization; a full page proves no
 /// completeness, and an empty page proves no absence beyond the frozen Cut.
-pub fn resolve<T>(
+pub type ResolveFn<T> = fn(
     profile: &ViewResolveProfile,
     query: &Query,
     history: &ExactHistoryRead,
@@ -41,11 +44,12 @@ pub fn resolve<T>(
     budget: QueryWorkBudget,
 ) -> Result<Fix<T>, QueryRefusal>;
 
-/// Continue one bounded traversal from an exact continuation. The cursor
-/// binds the operation it continues; a changed binding refuses as an
-/// incompatible continuation — never a silent rebase onto newer history.
-/// A cursor is never skip authority and never durable recovery state.
-pub fn resolve_continue<T>(
+/// `resolve_continue` — continue one bounded traversal from an exact
+/// continuation. The cursor binds the operation it continues; a changed
+/// binding refuses as an incompatible continuation — never a silent rebase
+/// onto newer history. A cursor is never skip authority and never durable
+/// recovery state.
+pub type ResolveContinueFn<T> = fn(
     profile: &ViewResolveProfile,
     cursor: Cursor,
     history: &ExactHistoryRead,
@@ -56,56 +60,64 @@ pub fn resolve_continue<T>(
 // Push lane
 // ---------------------------------------------------------------------------
 
-/// Advance one maintained result: prior derived state plus one bounded
-/// admitted delta yields the next derived state. Shallow, bounded,
-/// recursion-free; work is declared per event by the advance profile's
-/// formula and accounted in the output. Refusals: `AdvanceRefusal` — a
-/// state that does not belong to the claim, a delta outside the claim's
-/// sources, a delta that does not abut the state's `AppliedCut`, or an
-/// exhausted bound. Producing a `ViewAdvance` publishes nothing and
-/// advances no checkpoint.
-pub fn advance(
+/// `advance` — advance one maintained state: the `View` definition, its
+/// prior `ViewState`, and one bounded admitted delta yield the next state.
+/// Shallow, bounded, recursion-free; work is declared per event by the
+/// advance profile's formula and accounted in the output. The definition
+/// and the state arrive as separate arguments — a state that does not
+/// belong to the supplied definition refuses
+/// (`AdvanceRefusal::StateClaimMismatch`). Further refusals: a delta
+/// outside the definition's sources, a delta that does not abut the state's
+/// `AppliedCut`, an exhausted bound. Producing a `ViewAdvance` publishes
+/// nothing and advances no checkpoint.
+pub type AdvanceFn = fn(
     profile: &ViewAdvanceProfile,
-    prior: View,
+    view: &View,
+    prior: ViewState,
     delta: &AdmittedDelta<'_>,
 ) -> Result<ViewAdvance, AdvanceRefusal>;
 
-/// Advance one finite temporal monitor by one bounded admitted delta. At
-/// most one newly settled fate per exact claim, latching only forward;
-/// knowledge (`Truth`) rides beside fate. A monitor whose horizon cannot
-/// close over an incomplete source set reports incompleteness rather than
-/// settling (`MonitorRefusal::ClosureUnavailable`).
-pub fn advance_monitor(
+/// `advance_monitor` — advance one finite temporal monitor by one bounded
+/// admitted delta. At most one newly settled fate per exact claim, latching
+/// only forward; knowledge (`Truth`) rides beside fate. A monitor whose
+/// horizon cannot close over an incomplete source set reports incompleteness
+/// rather than settling (`MonitorRefusal::ClosureUnavailable`).
+pub type AdvanceMonitorFn = fn(
     profile: &MonitorProfile,
     prior: TemporalMonitorState,
     delta: &AdmittedDelta<'_>,
 ) -> Result<MonitorAdvance, MonitorRefusal>;
 
-/// Rebuild one maintained result from accepted history by the reference
-/// road — the corruption and recovery path. The claim is unchanged; the
-/// output carries a fresh `ViewGeneration`. Consumes pull-lane work.
-pub fn rebuild(
+/// `rebuild` — rebuild one maintained state from accepted history by the
+/// reference road — the corruption and recovery path. The `View` definition
+/// is unchanged; the output is a fresh `ViewState` carrying a fresh
+/// `ViewGeneration`. Consumes pull-lane work.
+pub type RebuildFn = fn(
     profile: &ViewResolveProfile,
+    view: &View,
     history: &ExactHistoryRead,
     at: &FederationCut,
     budget: QueryWorkBudget,
-) -> Result<View, QueryRefusal>;
+) -> Result<ViewState, QueryRefusal>;
 
 // ---------------------------------------------------------------------------
 // Parity
 // ---------------------------------------------------------------------------
 
-/// Judge push-maintained against pull-recomputed at the same claim, source
-/// set, exact Cuts, frame, relation versions, configuration, and profile.
-/// The reference road is recomputed here — the maintained road never
-/// certifies itself, and the two roads share no load-bearing evaluator.
-/// Output: `ParityVerdict::Held` with a witness, or `::Diverged` with
-/// evidence — on divergence the maintained result loses and is rebuilt.
+/// `verify_parity` — judge push-maintained against pull-recomputed at the
+/// same definition, source set, exact Cuts, frame, relation versions,
+/// configuration, and profile. The judge receives the `View` definition and
+/// the maintained `ViewState` as separate arguments and recomputes the
+/// reference road here — handing the judge the maintained state as its own
+/// reference is unrepresentable, and the two roads share no load-bearing
+/// evaluator. Output: `ParityVerdict::Held` with a witness, or `::Diverged`
+/// with evidence — on divergence the maintained state loses and is rebuilt.
 /// Refusal: `QueryRefusal::ParityIncomparable` when the pairing differs in
 /// any held-constant fact — refusing to judge is not a verdict.
-pub fn verify_parity(
+pub type VerifyParityFn = fn(
     profile: &ViewResolveProfile,
-    maintained: &View,
+    view: &View,
+    maintained: &ViewState,
     history: &ExactHistoryRead,
     budget: QueryWorkBudget,
 ) -> Result<ParityVerdict, QueryRefusal>;
@@ -114,61 +126,72 @@ pub fn verify_parity(
 // Selection
 // ---------------------------------------------------------------------------
 
-/// Derive exact semantic membership over one row domain at one source Cut.
-/// The predicate is application-typed and supplied explicitly; the
-/// representation is the profile-selected mechanism and never changes
-/// membership meaning. Bounded by the Result-class cardinality limit.
-pub fn derive_selection<P>(
+/// `derive_selection` — derive exact semantic membership over one row
+/// domain at one source Cut, evaluated against the event owner's exact-read
+/// surface — membership is decided over accepted history, never over
+/// ambient state. The predicate is application-typed and supplied
+/// explicitly; the representation is the profile-selected mechanism and
+/// never changes membership meaning. Bounded by the Result-class
+/// cardinality limit and one affine work budget — evaluating membership
+/// over history is Work-class effort like every other history-consuming
+/// operation, never free.
+pub type DeriveSelectionFn<P> = fn(
     representation: SelectionRepresentation,
     domain: RowDomainId,
     at: Cut,
+    history: &ExactHistoryRead,
     predicate: P,
     limit: SelectionCardinalityLimit,
+    budget: QueryWorkBudget,
 ) -> Result<SelectionMask, SelectionRefusal>;
 
-/// Prove two row domains are one population. The only mint of
-/// `RowDomainEqualityWitness`; equal cardinality proves nothing here.
-/// Refuses (`RowDomainEqualityUnproven`) when the evidence does not close.
-pub fn prove_row_domain_equality(
+/// `prove_row_domain_equality` — prove two row domains are one population.
+/// The only mint of `RowDomainEqualityWitness`; equal cardinality proves
+/// nothing here. Refuses (`RowDomainEqualityUnproven`) when the evidence
+/// does not close.
+pub type ProveRowDomainEqualityFn = fn(
     left: RowDomainId,
     right: RowDomainId,
     history: &ExactHistoryRead,
     budget: QueryWorkBudget,
 ) -> Result<RowDomainEqualityWitness, SelectionRefusal>;
 
-/// Intersect two masks over proven-equal row domains at the same Cut.
-/// Composition without the witness is unrepresentable — the witness
-/// parameter is the law, not ceremony.
-pub fn intersect_selection(
+/// `intersect_selection` — intersect two masks over proven-equal row
+/// domains at the same Cut. Composition without the witness is
+/// unrepresentable — the witness parameter is the law, not ceremony.
+pub type IntersectSelectionFn = fn(
     left: &SelectionMask,
     right: &SelectionMask,
     equality: &RowDomainEqualityWitness,
 ) -> Result<SelectionMask, SelectionRefusal>;
 
-/// Union two masks over proven-equal row domains at the same Cut.
-pub fn union_selection(
+/// `union_selection` — union two masks over proven-equal row domains at the
+/// same Cut.
+pub type UnionSelectionFn = fn(
     left: &SelectionMask,
     right: &SelectionMask,
     equality: &RowDomainEqualityWitness,
 ) -> Result<SelectionMask, SelectionRefusal>;
 
-/// Subtract one mask from another over proven-equal row domains at the same
-/// Cut.
-pub fn difference_selection(
+/// `difference_selection` — subtract one mask from another over proven-equal
+/// row domains at the same Cut.
+pub type DifferenceSelectionFn = fn(
     left: &SelectionMask,
     right: &SelectionMask,
     equality: &RowDomainEqualityWitness,
 ) -> Result<SelectionMask, SelectionRefusal>;
 
-/// Complement one mask, bounded by its domain's logical length — physical
-/// padding bits can never select nonexistent rows.
-pub fn complement_selection(
+/// `complement_selection` — complement one mask, bounded by its domain's
+/// logical length — physical padding bits can never select nonexistent
+/// rows.
+pub type ComplementSelectionFn = fn(
     mask: &SelectionMask,
 ) -> Result<SelectionMask, SelectionRefusal>;
 
-/// Convert one mask among qualified representations. Membership meaning is
-/// invariant; an unqualified target representation refuses.
-pub fn convert_selection(
+/// `convert_selection` — convert one mask among qualified representations.
+/// Membership meaning is invariant; an unqualified target representation
+/// refuses.
+pub type ConvertSelectionFn = fn(
     mask: &SelectionMask,
     target: SelectionRepresentation,
 ) -> Result<SelectionMask, SelectionRefusal>;
@@ -176,12 +199,16 @@ pub fn convert_selection(
 // ---------------------------------------------------------------------------
 // Materialization lifecycle — eight separate operations by law. Stage
 // strengthening becomes typestate at realization (the standing roster is a
-// recorded realization seam); the semantic distinctions are fixed here.
+// recorded realization seam; whether persisted/foreign lifecycle state
+// crosses back in as validated dynamic state or in-process affine typestate
+// is part of that same recorded seam, closing at A2). The semantic
+// distinctions are fixed here.
 // ---------------------------------------------------------------------------
 
-/// Pure derivation of one generation's content from accepted history at
-/// exact Cuts. Produces a candidate generation; changes no accepted fact.
-pub fn derive_materialization(
+/// `derive_materialization` — pure derivation of one generation's content
+/// from accepted history at exact Cuts. Produces a candidate generation;
+/// changes no accepted fact.
+pub type DeriveMaterializationFn = fn(
     profile: &MaterializationProfile,
     role: MaterializationId,
     history: &ExactHistoryRead,
@@ -189,48 +216,53 @@ pub fn derive_materialization(
     budget: QueryWorkBudget,
 ) -> Result<MaterializationGeneration, MaterializationRefusal>;
 
-/// Structural validation of one derived generation's physical material
-/// against its descriptor bounds — a reader refuses before allocating.
-pub fn validate_materialization(
+/// `validate_materialization` — structural validation of one derived
+/// generation's physical material against its descriptor bounds — a reader
+/// refuses before allocating.
+pub type ValidateMaterializationFn = fn(
     profile: &MaterializationProfile,
     generation: &MaterializationGeneration,
 ) -> Result<(), MaterializationRefusal>;
 
-/// Semantic binding: prove the generation's `AppliedCut` — that the named
-/// source Cuts were actually incorporated. New physical bytes never imply
-/// a newer `AppliedCut` (`MaterializationRefusal::AppliedCutUnproven`).
-pub fn bind_materialization(
+/// `bind_materialization` — semantic binding: prove the generation's
+/// `AppliedCut` — that the named source Cuts were actually incorporated.
+/// New physical bytes never imply a newer `AppliedCut`
+/// (`MaterializationRefusal::AppliedCutUnproven`).
+pub type BindMaterializationFn = fn(
     generation: MaterializationGeneration,
     history: &ExactHistoryRead,
 ) -> Result<MaterializationGeneration, MaterializationRefusal>;
 
-/// Durably publish one bound generation. A failed publication changes no
-/// accepted fact; a published generation is not automatically active.
-pub fn publish_materialization(
+/// `publish_materialization` — durably publish one bound generation. A
+/// failed publication changes no accepted fact; a published generation is
+/// not automatically active.
+pub type PublishMaterializationFn = fn(
     generation: MaterializationGeneration,
 ) -> Result<MaterializationGeneration, MaterializationRefusal>;
 
-/// Activate one published generation for serving.
-pub fn activate_materialization(
+/// `activate_materialization` — activate one published generation for
+/// serving.
+pub type ActivateMaterializationFn = fn(
     generation: MaterializationGeneration,
 ) -> Result<MaterializationGeneration, MaterializationRefusal>;
 
-/// Select one active generation as current for its role. Selection is
-/// explicit; a newer generation never becomes current by existing.
-pub fn select_current_materialization(
+/// `select_current_materialization` — select one active generation as
+/// current for its role. Selection is explicit; a newer generation never
+/// becomes current by existing.
+pub type SelectCurrentMaterializationFn = fn(
     role: MaterializationId,
     generation: MaterializationGenerationId,
 ) -> Result<(), MaterializationRefusal>;
 
-/// Retire one generation. A superseded generation remains identifiable
-/// historical physical evidence.
-pub fn retire_materialization(
+/// `retire_materialization` — retire one generation. A superseded
+/// generation remains identifiable historical physical evidence.
+pub type RetireMaterializationFn = fn(
     generation: MaterializationGeneration,
 ) -> Result<(), MaterializationRefusal>;
 
-/// Reclaim one retired generation's physical material. Waits for live
-/// readers; never rewrites historical evidence.
-pub fn reclaim_materialization(
+/// `reclaim_materialization` — reclaim one retired generation's physical
+/// material. Waits for live readers; never rewrites historical evidence.
+pub type ReclaimMaterializationFn = fn(
     generation: MaterializationGenerationId,
 ) -> Result<(), MaterializationRefusal>;
 
@@ -238,13 +270,14 @@ pub fn reclaim_materialization(
 // Information release
 // ---------------------------------------------------------------------------
 
-/// Request physical resolution of protected payload extents — the release
-/// chain's final step: grant first, exact lawful selection, skip forbidden
-/// extents, verify, then materialize only authorized fields. Decrypt last,
-/// decrypt least. The physical crossing is a typed port operation; this
-/// owner never receives raw key authority, and a resolution result never
-/// widens the grant that produced it. Refusals: `ReleaseRefusal`.
-pub fn resolve_protected(
+/// `resolve_protected` — request physical resolution of protected payload
+/// extents — the release chain's final step: grant first, exact lawful
+/// selection, skip forbidden extents, verify, then materialize only
+/// authorized fields. Decrypt last, decrypt least. The physical crossing is
+/// a typed port operation; this owner never receives raw key authority, and
+/// a resolution result never widens the grant that produced it. Refusals:
+/// `ReleaseRefusal`.
+pub type ResolveProtectedFn = fn(
     grant: &ProtectedResolutionGrant,
     mask: &SelectionMask,
     generation: &MaterializationGeneration,

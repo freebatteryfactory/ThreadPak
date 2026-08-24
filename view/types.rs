@@ -8,7 +8,7 @@
 //! mints, advances, or widens authority (see `README.md`, "The wall").
 //!
 //! Cross-home types are referenced as bare names in field position, owners
-//! noted here — `Truth` and `Duration` (core); `AcceptedEvent`, `Cut`,
+//! noted here — `Truth` (core); `AcceptedEvent`, `Cut`,
 //! `FederationCut`, `SourceSetId`, `ReferenceFrameId`, `FrameVersion`,
 //! `ExactHistoryRead` (event) — never as `crate::` paths; the dependency
 //! probe seats the real imports. The runtime owner keys a subscription's durable checkpoint
@@ -25,6 +25,7 @@
 //! profile, guard pass, or an owner ruling), never silently.
 
 use core::num::{NonZeroU32, NonZeroU64};
+use core::time::Duration;
 
 // ---------------------------------------------------------------------------
 // Identities
@@ -69,9 +70,22 @@ pub struct OccurrenceId {
     /* closes with the identity profile */
 }
 
-/// One rebuild generation of a maintained derived result. Discarding and
-/// rebuilding a stale or corrupt state mints a new generation; the claim it
-/// maintains is unchanged.
+/// Identity of one `View` — the durable semantic definition of one
+/// maintained derived result. Definition and state are separate roles
+/// (`View` / `ViewState`; owner ruling 2026-08-24).
+pub struct ViewId {
+    /* closes with the identity profile */
+}
+
+/// Version of one `View`'s definition semantics. A changed definition is a
+/// new version; it never silently rebinds existing states.
+pub struct ViewVersion {
+    /* closes with the identity profile */
+}
+
+/// One rebuild generation of one maintained `ViewState`. Discarding and
+/// rebuilding a stale or corrupt state mints a new generation; the `View`
+/// definition it maintains is unchanged.
 pub struct ViewGeneration {
     /* closes with the identity profile */
 }
@@ -200,22 +214,35 @@ pub enum Freshness {
     },
 }
 
-/// A maintained derived result — the push lane's resident. Rebuildable from
-/// accepted history by the reference road at the same claim, source set,
-/// Cuts, frame, and profile; parity with that road is required, and on
-/// disagreement the maintained result loses.
-///
-/// (`Projection` is deliberately unminted pending the View/Projection naming
-/// call — Escalation 2 in `README.md`. Whether this one role lawfully hides
-/// two — a definition and a per-Cut state — is the subject of the issued
-/// ViewDefinition/ViewState probe card; the definition-binding field below
-/// closes with that ruling.)
+/// The durable semantic definition of one maintained derived result — the
+/// claim: sources, frame, advance law, resolve law, and parity contract.
+/// Validated once; a definition never advances. The plain database noun is
+/// kept deliberately: `View` is the declared derivation, `ViewState` is one
+/// maintained state of it, and `MaterializationGeneration` is one physical
+/// realization (owner ruling 2026-08-24). `Projection` stays unminted — the
+/// lowercase word remains the root's generated-artifact category and the
+/// relational operator sense.
 pub struct View {
+    id: ViewId,
+    version: ViewVersion,
+    /* the definition body — sources, frame, advance law, resolve law,
+     * parity contract; exact roster closes with the guard pass */
+}
+
+/// One maintained derived state of one `View` at one `AppliedCut` — the
+/// push lane's resident. Rebuildable from accepted history by the reference
+/// road at the same definition, source set, Cuts, frame, and profile; parity
+/// with that road is required, and on disagreement the maintained state
+/// loses. The binding to its `View` is load-bearing: advance refuses a state
+/// that does not belong to the supplied definition
+/// (`AdvanceRefusal::StateClaimMismatch`).
+pub struct ViewState {
+    view: ViewId,
+    view_version: ViewVersion,
     applied: AppliedCut,
     generation: ViewGeneration,
-    /* definition binding — the claim this result maintains: sources, frame,
-     * advance and pull laws, parity contract; exact role spelling closes
-     * with the ViewDefinition/ViewState ruling (Escalation 2) */
+    /* maintained derived content; representation closes with the guard
+     * pass */
 }
 
 /// The result of one push-lane advance: the next maintained state and the
@@ -223,22 +250,24 @@ pub struct View {
 /// advances no checkpoint.
 #[must_use]
 pub struct ViewAdvance {
-    next: View,
+    next: ViewState,
     work: ConsumedDerivationWork,
 }
 
-/// The semantic relationship between one consumer and one maintained result,
-/// with a bounded retained window. A subscription's durable skip authority is
-/// its runtime-owned checkpoint; a delivered update, a wake, and a retained
-/// window are never progress.
+/// The semantic relationship between one consumer and one `View`, with a
+/// bounded retained window. A subscription binds the definition, never
+/// tonight's `ViewState` (owner ruling 2026-08-24). A subscription's durable
+/// skip authority is its runtime-owned checkpoint; a delivered update, a
+/// wake, and a retained window are never progress.
 pub struct Subscription {
     /// The identity the runtime owner keys this subscription's durable
     /// checkpoint by (`CheckpointSubject::Subscription`, runtime-owned).
     /// Nothing in this owner advances that checkpoint.
     id: SubscriptionId,
+    /// The subscribed definition — id and version, never a state.
+    view: ViewId,
+    view_version: ViewVersion,
     window: SubscriptionWindowLimit,
-    /* subject binding — the maintained result subscribed to; spelling
-     * follows the ViewDefinition/ViewState ruling (Escalation 2) */
 }
 
 /// Continuation of one traversal or query context. A cursor continues work;
@@ -468,7 +497,9 @@ pub struct MaterializationByteLimit(NonZeroU64);
 pub enum HorizonDimension {
     /// A count of admitted events over the claim's source set.
     AdmittedEventCount(NonZeroU64),
-    /// An admitted span (`Duration` is the core owner's unsigned span role).
+    /// An admitted span, carried as the standard `core::time::Duration`
+    /// (the generic unsigned span; owner mint 2026-08-24 — std batteries,
+    /// no custom span type).
     AdmittedSpan(Duration),
 }
 
@@ -559,11 +590,13 @@ pub enum QueryRefusal {
 
 /// Refusals of the push lane's advance operation.
 pub enum AdvanceRefusal {
-    /// The prior state does not belong to the supplied claim — the
-    /// distinctness refusal between a maintained state and what it
-    /// maintains (see the ViewDefinition/ViewState probe, Escalation 2).
+    /// The supplied `ViewState` does not belong to the supplied `View` —
+    /// its id or version does not match the definition. The distinctness
+    /// refusal that exists only because definition and state are separate
+    /// roles (owner ruling 2026-08-24).
     StateClaimMismatch {
-        /* the state's binding versus the supplied claim binding */
+        /* the state's view binding versus the supplied definition's
+         * id and version */
     },
     /// The delta's events are outside the claim's source set.
     DeltaSourceMismatch {

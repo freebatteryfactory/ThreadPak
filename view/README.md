@@ -8,7 +8,7 @@ This document states product law: what ThreadPak defines. No sentence here claim
 
 Accepted history is not a derived view. That single separation is this owner's reason to exist, and it is the machine's honesty contract (carries: `ARCHITECTURE.md` — What owns fact; rail 1).
 
-- Every resident of this owner — query results, Fixes, Views, subscriptions, temporal monitors, selection masks, materializations, DataBlocks — is **derived and rebuildable** from accepted history at exact Cuts.
+- Every resident of this owner — query results, Fixes, Views and their maintained ViewStates, subscriptions, temporal monitors, selection masks, materializations, DataBlocks — is **derived and rebuildable** from accepted history at exact Cuts.
 - No derived resident ever becomes authority. When a maintained result disagrees with accepted history, the maintained result is stale, corrupt, incomplete, or wrong — never the history. The read-side authority roles declared below (`ReadGrant`, `ProtectedResolutionGrant`) are declaration seats, not derived results; no view operation mints, advances, or widens them.
 - The illegal dependency this wall forbids: no event-owner operation may consume a derived result as an input to admission, ordering, or authority. Acceleration flows downstream only.
 - The refusal that proves the boundary: a derived value presented where accepted authority is required is refused by type — no view type converts into an event-owner authority type, and no view operation mints, advances, or amends a Cut, an `AuthoritySequence` position, or an accepted fact.
@@ -17,8 +17,9 @@ Accepted history is not a derived view. That single separation is this owner's r
 
 - **Query** — a demand-driven question against accepted history at exact Cuts.
 - **`Fix<T>`** — a derived answer bound to its exact source set and Cuts, carrying completeness and freshness as orthogonal axes. A Fix is what can be concluded, never what is authoritatively stored.
-- **View** — a maintained derived result (see Escalations for the View/Projection naming fork).
-- **Subscription** — the semantic relationship between a consumer and a maintained result, with a bounded retained window.
+- **View** — the durable semantic definition of one maintained derived result: sources, frame, advance law, resolve law, and parity contract. Validated once; a definition never advances (owner ruling 2026-08-24 — see Escalation 2, closed).
+- **ViewState** — one maintained derived state of one View at one `AppliedCut`: replaced when superseded, rebuilt from accepted history when stale or corrupt. The recipe/plate separation is load-bearing: the parity judge receives definition and state separately, so a maintained state can never certify itself.
+- **Subscription** — the semantic relationship between a consumer and one View (the definition, never tonight's ViewState), with a bounded retained window.
 - **Cursor** — continuation of one traversal or query context. A Cursor is never skip authority.
 - **Temporal family** — `TemporalClaim`, `TemporalMonitor`, and their evaluation under K3 knowledge, temporal fate, and horizon.
 - **Selection** — `RowDomain` and `SelectionMask`: exact semantic membership, decided before expensive or protected work.
@@ -36,19 +37,19 @@ Accepted history is not a derived view. That single separation is this owner's r
 
 **The parity contract.** For every result this owner claims to maintain incrementally, the push-maintained result equals pull recomputation at the same claim, source set, exact Cuts, frame, relation versions, configuration, and profile. Parity applies to exactly one of the three root cases: a semantic maintained result requires parity; an awareness notification carries no result claim and is not this owner's resident (it is runtime delivery); a physical effect or observation is not a derived-view pair at all.
 
-The two roads must remain structurally independent where parity is judged: the maintained road and the reference recomputation road may share declarations, but never one shared load-bearing evaluator whose common defect would certify itself. Macroonz, as the published generation and harness dependency, may generate plumbing for both roads, project this owner's profile and operation indexes, and independently pressure the pair; it owns no view semantics.
+The two roads must remain structurally independent where parity is judged: the maintained road and the reference recomputation road may share declarations, but never one shared load-bearing evaluator whose common defect would certify itself. The View/ViewState split carries this structurally — the judge takes the definition and the maintained state as separate arguments and recomputes the reference from the definition, so handing it the plate twice is unrepresentable. Macroonz, as the published generation and harness dependency, may generate plumbing for both roads, project this owner's profile and operation indexes, and independently pressure the pair; it owns no view semantics.
 
 ## Operations, profiles, and rows
 
-The thin semantic signatures live in `ops.rs`; every operation receives its profile and bounds as explicit typed arguments, and the selected values are rows in `depot/view.md` (`depot/README.md` — "Rows are passed, never fetched"). The pull-lane operations consume the event owner's exact-read surface over accepted history (`ExactHistoryRead` — declaration owed by the event owner; recorded escalation).
+The thin semantic signatures live in `ops.rs`; every operation receives its profile and bounds as explicit typed arguments, and the selected values are rows in `depot/view.md` (`depot/README.md` — "Rows are passed, never fetched"). The pull-lane operations consume the event owner's exact-read surface over accepted history (`ExactHistoryRead`, declared by the event owner with its storage contract).
 
 | Operation | Consumes | Refuses with |
 | --- | --- | --- |
 | `resolve`, `resolve_continue`, `rebuild` | `ViewResolveProfile`, affine `QueryWorkBudget` | `QueryRefusal` |
-| `advance` | `ViewAdvanceProfile`, prior `View`, `AdmittedDelta` | `AdvanceRefusal` |
+| `advance` | `ViewAdvanceProfile`, the `View` definition, prior `ViewState`, `AdmittedDelta` | `AdvanceRefusal` |
 | `advance_monitor` | `MonitorProfile`, prior `TemporalMonitorState`, `AdmittedDelta` | `MonitorRefusal` |
-| `verify_parity` | `ViewResolveProfile`, affine `QueryWorkBudget` | `QueryRefusal` (verdicts are `ParityVerdict::Held / Diverged`) |
-| `derive_selection`, `prove_row_domain_equality`, the compose family, `convert_selection` | `SelectionRepresentation`, `SelectionCardinalityLimit`, `RowDomainEqualityWitness` | `SelectionRefusal` |
+| `verify_parity` | `ViewResolveProfile`, the `View` definition, the maintained `ViewState`, affine `QueryWorkBudget` | `QueryRefusal` (verdicts are `ParityVerdict::Held / Diverged`) |
+| `derive_selection`, `prove_row_domain_equality`, the compose family, `convert_selection` | `SelectionRepresentation`, `ExactHistoryRead` (membership is decided over accepted history), `SelectionCardinalityLimit`, `RowDomainEqualityWitness` | `SelectionRefusal` |
 | the eight materialization lifecycle operations | `MaterializationProfile` | `MaterializationRefusal` |
 | `resolve_protected` | `ProtectedResolutionGrant`, lawful `SelectionMask` | `ReleaseRefusal` |
 
@@ -166,7 +167,7 @@ Role-specific, never one mega-error: `QueryRefusal`, `AdvanceRefusal`, `Selectio
 These are the repository owner's calls; nothing below is decided by this document.
 
 1. **`Fix<T>` exact public shape.** The role and its axes are law; the exact Rust spelling and public field surface remain open per the coordinates ruling that fixed the semantics while leaving names open.
-2. **View versus Projection — and the definition/state probe.** The owner keeps `View` and mints no `Projection` (lowercase projection stays the root's generated-artifact category). The remaining question, probed at contract closure and issued as a card with this packet: whether `View` lawfully hides two roles — a ViewDefinition (the claim and its laws) and a ViewState (one derived state at one `AppliedCut`). The definition-binding seams in `types.rs` (`View`, `Subscription`) close with that ruling; `AdvanceRefusal::StateClaimMismatch` is the refusal that exists only if the roles are distinct.
+2. **View definition/state split (cross-owner seam — closed by owner ruling 2026-08-24).** The probe closed all six earning questions and the owner ruled: split, spelled `View` (the durable definition — the recipe) and `ViewState` (one maintained state at one `AppliedCut` — the plate), with `MaterializationGeneration` remaining the physical realization. `Projection` stays unminted; the lowercase word remains the root's generated-artifact category and the relational operator sense. `AdvanceRefusal::StateClaimMismatch` is the distinctness refusal, and the former definition-binding seams in `types.rs` (`View`, `Subscription`) are closed. This entry stays as the record of the seam, no longer open.
 3. **Temporal claim starter set.** Which claim families exist first (always, never, bounded eventually, bounded until, or a smaller set).
 4. **Cross-source temporal finality postures.** Which claims may settle over independently frozen federation Cuts and which require causally constrained or coordinated Cuts.
 5. **Monitor fast-start.** Recompute-only first, or optional derived monitor checkpoints with exact invalidation keys.
