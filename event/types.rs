@@ -29,6 +29,12 @@ pub struct ReferenceFrame {
     /* frame identity and axis roster; closes with the identity profile */
 }
 
+/// Identity of one `ReferenceFrame`. Role-distinct from every other identity;
+/// consumers binding a frame bind this identity plus a `FrameVersion`.
+pub struct ReferenceFrameId {
+    /* closes with the identity profile */
+}
+
 /// The version of a `ReferenceFrame`. Frame meaning changes only by minting a
 /// new version, never by mutating an existing one.
 pub struct FrameVersion {
@@ -552,7 +558,10 @@ pub struct TokenUsabilityHorizon {
 }
 
 /// How long the system must still recognize reuse of the nonce identity —
-/// strictly independent of token usability.
+/// strictly independent of token usability. It never closes before the same
+/// reservation's `TokenUsabilityHorizon`: a still-usable token whose duplicate
+/// recognition had lapsed would let a retry become a fresh intent, and guarded
+/// construction refuses the inversion.
 pub struct DuplicateRecognitionHorizon {
     /* a Time-class bound; closes with the depot profile */
 }
@@ -704,6 +713,9 @@ pub struct ReservationByteLimit(NonZeroU64);
 /// Maximum live reservations per principal (including the bounded anonymous
 /// bucket).
 pub struct ReservationsPerPrincipalLimit(NonZeroU32);
+
+/// Maximum live reservations per tenant scope.
+pub struct ReservationsPerTenantLimit(NonZeroU32);
 
 /// Maximum live reservations per operation family.
 pub struct ReservationsPerOperationLimit(NonZeroU32);

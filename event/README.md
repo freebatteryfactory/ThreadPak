@@ -6,7 +6,7 @@ The home's question:
 
 > **What fact became accepted, at which semantic address, under which authority, in what exact authority-local order, and through which durable cut?**
 
-This home is the center of the machine. Accepted event history owns domain fact (ARCHITECTURE.md §What owns fact). Everything else in ThreadPak either feeds this home through admission or derives from it at exact Cuts.
+This home is the center of the machine. Accepted event history owns domain fact (ARCHITECTURE.md §What owns fact). Everything else in ThreadPak either feeds this home through admission, derives from it at exact Cuts, or is a role-specific durable record of another owner — runtime checkpoint advances, admitted EffectIntents, Attempt evidence — which owns exactly its own fact and references this home's Cuts without inhabiting them.
 
 ## Co-seated semantic owners
 
@@ -135,15 +135,15 @@ Ingress owns the custody of foreign submissions. It is a membrane into this home
 **Two intake compositions.** The operation's contract — never the remote sender — selects the mode:
 
 ```text
-ClaimFirst    FrameReceived → ClaimValidated → ClaimAdmitted
-              → later: DomainEventAccepted or DomainClaimRefused
+ClaimFirst    ReceivedClaim → ValidatedClaim → AdmittedClaim
+              → later: ClaimResolution (accepted event or typed domain refusal)
 
-DomainFirst   FrameReceived → ClaimValidated → DomainEventAccepted
+DomainFirst   ReceivedClaim → ValidatedClaim → AcceptedEvent
 ```
 
-**Retry discharge law.** Only the matching terminal admitted receipt discharges that submission's retry duty: `ClaimAdmitted` for a ClaimFirst submission, domain-event acceptance for a DomainFirst submission. Nothing earlier can do it, and there is no generic `Admitted` or `Accepted`. How much progress is exposed before the terminal milestone (terminal-only versus progressive) is an interface-selected projection with no ThreadPak-wide default; both projections preserve the same discharge invariant.
+**Retry discharge law.** Only the matching terminal admitted receipt discharges that submission's retry duty: the claim-admission receipt (`ClaimAdmissionReceipt`) for a ClaimFirst submission; the domain-admission receipt — bound to the submission's idempotency identity and the accepted event's publication — for a DomainFirst submission. Nothing earlier can do it, and there is no generic `Admitted` or `Accepted`. How much progress is exposed before the terminal milestone (terminal-only versus progressive) is an interface-selected projection with no ThreadPak-wide default; both projections preserve the same discharge invariant.
 
-**Milestone honesty.** `ClaimAdmitted` does not mean the domain assertion is true, that a domain event was accepted, that a process ran, or that a view caught up. Domain-event acceptance does not mean downstream effects completed or any checkpoint advanced. A progress witness states exactly what survived: recorded stage metadata is not crash-recoverable claim bytes unless the witness says so.
+**Milestone honesty.** Claim admission does not mean the domain assertion is true, that a domain event was accepted, that a process ran, or that a view caught up. Domain-event acceptance does not mean downstream effects completed or any checkpoint advanced. A progress witness states exactly what survived: recorded stage metadata is not crash-recoverable claim bytes unless the witness says so.
 
 **There is no `admit_domain` primitive.** Domain-fact admission is owned once, by accepted history. The ClaimFirst completion is a composition: application-owned interpretation of the validated claim into an EventProposal or domain refusal, ordinary event admission, and an ingress-recorded `ClaimResolution` relating the AdmittedClaim to its outcome. The claim's custody fact is never deleted; what closes is the processing obligation. When one qualified backend can co-publish the accepted event and the claim resolution under one proven local atomic boundary it may; the records remain semantically distinct, an accepted event is never rolled back because a resolution publication lagged, and a claim is never marked resolved before the event actually became accepted.
 
@@ -151,7 +151,7 @@ DomainFirst   FrameReceived → ClaimValidated → DomainEventAccepted
 
 **Reserve laws.** Repeating Reserve with the same nonce and same intent returns the same token, consuming bounded lookup work and no new reservation slot. The same nonce with conflicting intent is a typed reservation conflict — no overwrite, no second token. Quota exhaustion is a typed capacity refusal; an implementation may not evict an unexpired reservation and then accept a semantically ambiguous duplicate.
 
-**Reservation lifecycle.** Token usability and duplicate recognition are two horizons. After the `TokenUsabilityHorizon`, a retry may refuse as expired but may not silently become a fresh intent; a compact tombstone preserves duplicate recognition through the `DuplicateRecognitionHorizon`, after which retirement is lawful. Reservation state is bounded per principal, tenant, and operation, with creation-rate and byte bounds; anonymous or pre-authentication callers draw from a bounded anonymous bucket, an established client scope, or are refused before durable reservation — an unauthenticated caller never receives an unbounded durable-state mint. A reservation token is an ingress identity relationship, not authority: it is no grant, no admission, no Attempt, no checkpoint, and no proof of truth; later admission performs ordinary authority checks.
+**Reservation lifecycle.** Token usability and duplicate recognition are two horizons. After the `TokenUsabilityHorizon`, a retry may refuse as expired but may not silently become a fresh intent; a compact tombstone preserves duplicate recognition through the `DuplicateRecognitionHorizon`, after which retirement is lawful. The duplicate-recognition horizon never closes before the token-usability horizon: a still-usable token whose duplicate recognition had lapsed would let a retry become a fresh intent, and guarded construction refuses the inversion. Reservation state is bounded per principal, tenant, and operation, with creation-rate and byte bounds; anonymous or pre-authentication callers draw from a bounded anonymous bucket, an established client scope, or are refused before durable reservation — an unauthenticated caller never receives an unbounded durable-state mint. A reservation token is an ingress identity relationship, not authority: it is no grant, no admission, no Attempt, no checkpoint, and no proof of truth; later admission performs ordinary authority checks.
 
 **Rejected content.** The default disposition is a bounded, typed, redacted diagnostic. Any fingerprint is keyed and scope-bound, never a public unkeyed digest of low-entropy input. Raw retention is opt-in through a `QuarantineIntent` that crosses to the outside world via the port owner's quarantine contract under four guardrails: bounded; expiring with real deletion; access-controlled; never directly re-admittable — reuse crosses the foreign-content firewall as a fresh claim. Rejected bytes are never promoted into accepted history, and no raw attacker bytes ride inside a refusal value.
 
@@ -169,7 +169,7 @@ DomainFirst   FrameReceived → ClaimValidated → DomainEventAccepted
 
 ## Bounds
 
-Owner-local limits, consumed by the operations that declare them; numeric values and paved profiles live in the depot: `EventByteLimit`, `BatchEventLimit`, `CausalParentLimit`, `FederationSourceLimit`, `RecoveryScanBudget`, and the ingress reservation family (`ReservationCountLimit`, `ReservationByteLimit`, `ReservationsPerPrincipalLimit`, `ReservationsPerOperationLimit`, `ReservationCreationRateLimit`, `ReservationLookupWorkBudget`, `ReservationCreateWorkBudget`, `ClientNonceByteLimit`, `ReservationTokenByteLimit`, `ActiveReservationAgeLimit`, `ConflictEvidenceLimit`) plus the two horizons.
+Owner-local limits, consumed by the operations that declare them; numeric values and paved profiles live in the depot: `EventByteLimit`, `BatchEventLimit`, `CausalParentLimit`, `FederationSourceLimit`, `RecoveryScanBudget`, and the ingress reservation family (`ReservationCountLimit`, `ReservationByteLimit`, `ReservationsPerPrincipalLimit`, `ReservationsPerTenantLimit`, `ReservationsPerOperationLimit`, `ReservationCreationRateLimit`, `ReservationLookupWorkBudget`, `ReservationCreateWorkBudget`, `ClientNonceByteLimit`, `ReservationTokenByteLimit`, `ActiveReservationAgeLimit`, `ConflictEvidenceLimit`) plus the two horizons.
 
 ## Crossings
 
