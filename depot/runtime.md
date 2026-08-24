@@ -22,7 +22,7 @@ consequence: refusal/default change under requalification.
 | runtime.attempt-limit | `AttemptLimit` · `admit_attempt` | — | withheld | owner-derived | caps live Attempts per scope; never retry legality / hostile: admission beyond cap must refuse |
 | runtime.reservation-limit | `ReservationLimit` · `admit_attempt` | — | withheld | owner-derived | / hostile: partial acquisition must release all |
 | runtime.port-request-limit | `PortRequestLimit` | — | withheld | owner-derived | per-Attempt outstanding requests |
-| runtime.port-response-byte-limit | `PortResponseLimit` | — | withheld | owner-derived | refuses before allocation |
+| runtime.port-response-byte-limit | port-owned `PortResponseByteLimit` (declaration seat: `depot/port.md`; cited, never restated) | — | withheld | port owner | consumed here inside response binding; refuses before allocation |
 | runtime.deferred-input-count | `DeferredInputLimit` · `stitch` | — | withheld | owner-derived | / hostile: retention beyond count refuses, never silently drops |
 | runtime.deferred-input-bytes | `DeferredInputByteLimit` | — | withheld | owner-derived | |
 | runtime.deferred-input-age | `DeferredInputAgeLimit` | — | withheld | owner-derived | Time class; expiry is a typed terminal refusal, never silent loss |

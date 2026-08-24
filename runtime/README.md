@@ -15,7 +15,7 @@ Co-seating is a dependency-home fact, not a merger of meaning. No type, operatio
 
 ## Turn and Stitch
 
-A **Turn** is one logical transition: selected runnable logical work, frozen typed inputs at exact Cuts, one admitted program invocation, a semantic result or refusal, event proposals, effect proposals, and a checkpoint consequence. The `Turn` record is the logical-book entry carrying exactly those bindings. `TurnId` is a derived identity over the Turn's identity-bearing inputs; replay reconstructs the same Turn where lawful, and a changed identity input is a different Turn. Four lineage identities never substitute: `LogicalOperationId` (the application-meaningful unit), `TurnId` (one logical transition), `EffectIntentId` (one admitted external intent), `AttemptId` (one physical effort).
+A **Turn** is one logical transition: selected runnable logical work, frozen typed inputs at exact Cuts, one admitted program invocation, a semantic result or refusal, event proposals, effect proposals, and a checkpoint consequence. The logical-book entry is two append-only records with one typed join: the `Turn` record freezes the invocation half (operation, process and generation, inputs, invocation, bounds, recovery posture, checkpoint consequence), and the `TurnConclusion` record binds that Turn's identity to what it concluded (semantic conclusion, event proposals, effect proposals, work, explanation). Neither record edits the other; their accepted composition is the complete entry. `TurnId` is a derived identity over the Turn's identity-bearing inputs; replay reconstructs the same Turn where lawful, and a changed identity input is a different Turn. Four lineage identities never substitute: `LogicalOperationId` (the application-meaningful unit), `TurnId` (one logical transition), `EffectIntentId` (one admitted external intent), `AttemptId` (one physical effort).
 
 Stitch consumes one member of the typed-observation family `StitchStimulus`. The family's roster closes with the stimulus-algebra seam; a wake is awareness and is never a member.
 
@@ -24,8 +24,11 @@ Stitch consumes one member of the typed-observation family `StitchStimulus`. The
 ```text
 prior admitted state
 + one typed observation
-+ explicit context
-→ StitchAdvance (next state, event proposals, effect proposals, work, explanation)
++ explicit context (the Turn being realized, the process contract,
+  the deadline policy)
+→ StitchAdvance (next state + TurnConclusion: semantic conclusion,
+  event proposals, effect proposals, work, explanation — joined to
+  the Turn's identity)
 | StitchRefusal
 ```
 
@@ -101,7 +104,7 @@ LiveDeadline              process-local enforcement state in one monotonic
                           clock domain; never serialized; dies with the process
 ```
 
-Rebasing derives a `LiveDeadline` from policy, a monotonic observation, and consumed evidence. Remaining allowance never grows without a new explicit authority decision.
+Rebasing derives a `LiveDeadline` from policy, one admitted monotonic observation (the port owner's validated enclosure — raw readings never cross this boundary), and consumed evidence. Remaining allowance never grows without a new explicit authority decision.
 
 ## Checkpoint authority
 
@@ -132,7 +135,7 @@ Replay preserves the logical Turn where lawful and always mints fresh Attempts. 
 
 ## Runtime record publication
 
-This owner's durable records — admitted `EffectIntent`s, accepted checkpoint advances, sealed `AttemptReport`s where a profile requires durability, and reconciliation records — publish through a **runtime-declared storage port family**, stated in the port owner's contract grammar exactly as the event owner declares its own storage family. The behavioral contract mirrors the event storage law: append against an expected predecessor, exact read-back of the published records, crash recovery bounded by the committed boundary, and idempotent reopen. One qualified physical adapter may realize this family and the event owner's family on one backend; the semantic owners never merge, and an adapter's success claim never substitutes for a receipt it did not establish. Nothing here publishes domain history: these records reference domain Cuts and never inhabit domain regions.
+This owner's durable records — admitted `EffectIntent`s, accepted checkpoint advances, sealed `AttemptReport`s where a profile requires durability, and reconciliation records — publish through a **runtime-declared storage port family**, stated in the port owner's contract grammar exactly as the event owner declares its own storage family. An admitted intent's proposal publishes with it: the proposal's canonical bytes — naming its port operation, contract version, and request-value commitment — remain durably reachable through this family, so the exact physical request is realizable from the durable record alone, and `EffectProposalCommitment` proves the correspondence. The behavioral contract mirrors the event storage law: append against an expected predecessor, exact read-back of the published records, crash recovery bounded by the committed boundary, and idempotent reopen. One qualified physical adapter may realize this family and the event owner's family on one backend; the semantic owners never merge, and an adapter's success claim never substitutes for a receipt it did not establish. Nothing here publishes domain history: these records reference domain Cuts and never inhabit domain regions.
 
 ## Reconciliation
 
@@ -167,9 +170,9 @@ Bvisor is the physical-admission membrane around one admitted logical invocation
 
 ## Bounds and profiles
 
-Owner-local bounds, consumed by the operations that declare them; numeric values and paved profiles live in `depot/runtime.md`, and every operation receives its profile or budget as an explicit argument — never through an ambient lookup (`depot/README.md`, "Rows are passed, never fetched"): `AttemptLimit`, `ReservationLimit`, `PortRequestLimit`, `PortResponseLimit`, `DeferredInputLimit`, `DeferredInputByteLimit`, `DeferredInputAgeLimit`, `DeferredInputReconsiderationBudget`, `CheckpointLagLimit`, `PumpWorkBudget`, `ReconciliationStepBudget`, `JoinBranchLimit`, and the PakVM four (`FrameLimit`, `ValueByteLimit`, `ScratchByteLimit`, `ContinuationByteLimit`).
+Owner-local bounds, consumed by the operations that declare them; numeric values and paved profiles live in `depot/runtime.md`, and every operation receives its profile or budget as an explicit argument — never through an ambient lookup (`depot/README.md`, "Rows are passed, never fetched"): `AttemptLimit`, `ReservationLimit`, `PortRequestLimit`, `DeferredInputLimit`, `DeferredInputByteLimit`, `DeferredInputAgeLimit`, `DeferredInputReconsiderationBudget`, `CheckpointLagLimit`, `PumpWorkBudget`, `ReconciliationStepBudget`, `JoinBranchLimit`, and the PakVM four (`FrameLimit`, `ValueByteLimit`, `ScratchByteLimit`, `ContinuationByteLimit`). The response byte ceiling is the port owner's `PortResponseByteLimit` — declared with the port contract, consumed here inside response binding; this owner declares no twin.
 
-The profile algebras this owner declares — `DriverProfile`, `CheckpointStorageProfile`, `ReconciliationProfile`, `PanicContainmentProfile` — state the lawful configuration axes; depot rows select coordinates inside them. A profile selects within an operation's declared contracts and never widens one.
+The profile algebras this owner declares — `DriverProfile`, `CheckpointStorageProfile`, `ReconciliationProfile`, `EffectAdmissionProfile`, `PanicContainmentProfile` — state the lawful configuration axes; depot rows select coordinates inside them. A profile selects within an operation's declared contracts and never widens one.
 
 ## Crossings
 
@@ -185,7 +188,7 @@ Fact: what became accepted, where, in what exact order, through which durable cu
 Fact: what one subscription means and that push-maintained results equal pull recomputation at the same Cut. Owner: view. Establishing operation: view advancement and recomputation. Carrier: runtime delivery moves updates, wakes, credit, and checkpoints. Substitution refusal: delivery progress, wake receipt, and credit state never impersonate parity, completeness, or checkpoint advancement. Chronology: carries ARCHITECTURE.md rails 4 and 9.
 
 **Port contracts and clock observations.**
-Fact: the typed boundary grammar for external operations and physical time. Owner: port. Establishing operation: port contract declaration; host adapters realize it. Carrier: Bvisor binds requests to Attempts and validates responses; the deadline owner consumes monotonic observations; wall observations belong to event chronology, not to this home. Substitution refusal: no ambient clock exists anywhere in this home, and a response satisfying different correctness coordinates refuses. Chronology: carries the role-specific clock-contract ruling of 2026-08-24; derives from ARCHITECTURE.md rail 8.
+Fact: the typed boundary grammar for external operations and physical time. Owner: port. Establishing operation: port contract declaration; host adapters realize it. Carrier: Bvisor binds requests to Attempts and validates responses; the deadline owner consumes admitted monotonic observations (the port owner's validated enclosures — raw readings never cross); wall observations belong to event chronology, not to this home. Substitution refusal: no ambient clock exists anywhere in this home, and a response satisfying different correctness coordinates refuses. Chronology: carries the role-specific clock-contract ruling of 2026-08-24; derives from ARCHITECTURE.md rail 8.
 
 **EffectProposal and EffectIntent.**
 Fact: one durably admitted intent to affect the outside world. Meaning owner: program — a transition produces the inert `EffectProposal` that declares the effect. Record owner: this home — REQUEST or PEND admission consumes the proposal and mints the durable `EffectIntent`, and this owner holds its publication contract and the outstanding relationship; Bvisor realizes it through fresh Attempts; reconciliation concludes it. Substitution refusal: a proposal is not an admitted intent; neither runtime nor Bvisor mints or edits effect *meaning*; an admitted intent survives any later semantic refusal. Chronology: carries ARCHITECTURE.md "What owns fact" and the effect proposal/admission split (owner-ruled 2026-08-24).
@@ -223,4 +226,4 @@ Genuine forks that only the repository owner rules; nothing below is decided by 
 
 ## Open realization seams
 
-Owner-derived contract work, not taste votes, and not closed here: the stimulus-algebra roster (`StitchStimulus` is seated; its member roster closes here — the `stitch` signature itself is declared in `ops.rs`, a pure free function until two real providers exist), the exact `VmValue` representation and operator inventory, wake and reservation mechanisms per target profile, and the checkpoint storage profile's mechanism selection. Each lands with its first construction cut and its own falsifiers.
+Owner-derived contract work, not taste votes, and not closed here: the stimulus-algebra roster (`StitchStimulus` is seated; its member roster closes here — the `stitch` signature is declared in `ops.rs` as the `StitchFn` alias, realized as a pure free function until two real providers exist), the exact `VmValue` representation and operator inventory, wake and reservation mechanisms per target profile, and the checkpoint storage profile's mechanism selection. Each lands with its first construction cut and its own falsifiers.

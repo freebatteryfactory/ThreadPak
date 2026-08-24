@@ -6,7 +6,8 @@
 //! `DecisionRefusal`, `ConsumedSemanticWork`, `Explanation` (program),
 //! `Cut`, `SourceSet`, `AcceptedEvent` (event), `SubscriptionId` (view),
 //! `PortRequestId`, `ValidatedResponse`, `RecoveryContract`, `ClockDomainId`,
-//! `RawMonotonicObservation` (port), `BoundClass` (core) — are foreign-owned;
+//! `MonotonicObservation`, `PortResponseByteLimit` (port), `BoundClass`
+//! (core) — are foreign-owned;
 //! their declarations live with their owners and resolve by import when the
 //! dependency probe seats the homes. Bare names, no `crate::` paths, until
 //! the probe exists.
@@ -84,11 +85,14 @@ pub struct ProcessContract {
      * close with the stimulus-algebra seam */
 }
 
-/// One complete logical-book entry: the Turn record. Binds the logical
-/// operation, the process and generation it advances, the frozen typed
-/// inputs at exact Cuts, the one admitted program invocation, the declared
-/// semantic bounds, the recovery posture, and the checkpoint consequence.
-/// The physical book (Attempts) references this record and never edits it.
+/// The frozen half of one logical-book entry: the Turn record. Binds the
+/// logical operation, the process and generation it advances, the frozen
+/// typed inputs at exact Cuts, the one admitted program invocation, the
+/// declared semantic bounds, the recovery posture, and the checkpoint
+/// consequence. What the Turn concluded is a separate append-only record
+/// (`TurnConclusion`); the accepted composition of the two is the complete
+/// logical-book entry. The physical book (Attempts) references this record
+/// and never edits it.
 pub struct Turn {
     id: TurnId,
     operation: LogicalOperationId,
@@ -130,33 +134,26 @@ pub struct CheckpointConsequence {
      * checkpoint contract */
 }
 
-/// One member of the typed-observation family Stitch consumes. The roster
-/// closes with the stimulus-algebra seam (a recorded open seam of this
-/// contract); a wake is awareness and is never a member of this family.
-pub struct StitchStimulus {
-    /* stimulus role and payload binding; roster closes with the
-     * stimulus-algebra seam */
+/// One semantic conclusion: a result or its typed refusal — both
+/// program-owned roles, preserved without collapse. Carried per Turn in
+/// `TurnConclusion` and per join branch in `JoinBranchRecord`.
+pub enum SemanticConclusion {
+    Returned(ImmediateResult),
+    Refused(DecisionRefusal),
 }
 
-/// Explicit context supplied to the Stitch transition: the process identity
-/// and generation, the applicable process contract, and the operation's
-/// durable deadline commitment. Carries no ambient clock, no executor, and
-/// no I/O capability.
-pub struct StitchContext {
-    process: ProcessId,
-    generation: ProcessGeneration,
-    contract: ProcessContract,
-    deadline: DeadlinePolicy,
-}
-
-/// The result of one Stitch transition: the next admitted state, event
-/// proposals for event admission, effect proposals for REQUEST/PEND
-/// admission, portable semantic work, and the evaluation's explanation.
-/// Producing this value publishes nothing; only event admission makes a
-/// proposal an accepted fact, and only effect admission mints an intent.
-#[must_use]
-pub struct StitchAdvance {
-    next: ProcessState,
+/// What one Turn concluded — the second half of the logical-book entry.
+/// `Turn` freezes the invocation; this record joins that Turn's identity to
+/// its semantic conclusion, its proposals, its portable work, and its
+/// explanation. Append-only: later evidence never edits it, and the accepted
+/// composition of `Turn` plus `TurnConclusion` is the complete logical-book
+/// entry.
+pub struct TurnConclusion {
+    /// The typed join to the frozen invocation this record concludes.
+    turn: TurnId,
+    /// The Turn's semantic conclusion — result or typed refusal, preserved
+    /// without collapse.
+    conclusion: SemanticConclusion,
     /// Program-owned carrier over the event owner's noun.
     events: EventProposals,
     /// Program-owned inert proposals; admission strengthens each into a
@@ -166,6 +163,44 @@ pub struct StitchAdvance {
     work: ConsumedSemanticWork,
     /// Program-owned progressive-explanation binding (rail 14).
     explanation: Explanation,
+}
+
+/// One member of the typed-observation family Stitch consumes. The roster
+/// closes with the stimulus-algebra seam (a recorded open seam of this
+/// contract); a wake is awareness and is never a member of this family.
+pub struct StitchStimulus {
+    /* stimulus role and payload binding; roster closes with the
+     * stimulus-algebra seam */
+}
+
+/// Explicit context supplied to the Stitch transition: the Turn this
+/// transition realizes (carrying the operation, process, generation, frozen
+/// inputs, admitted invocation, bounds, recovery posture, and checkpoint
+/// consequence), the applicable process contract, and the operation's
+/// durable deadline commitment. The process identity and generation ride on
+/// the Turn — no twin fields exist here. Carries no ambient clock, no
+/// executor, and no I/O capability.
+pub struct StitchContext {
+    /// The frozen invocation this transition realizes; the produced
+    /// `TurnConclusion` joins to its `TurnId`.
+    turn: Turn,
+    contract: ProcessContract,
+    deadline: DeadlinePolicy,
+}
+
+/// The result of one Stitch transition: the next admitted state plus the
+/// concluded Turn's record — the semantic conclusion, event proposals for
+/// event admission, effect proposals for REQUEST/PEND admission, portable
+/// semantic work, and the evaluation's explanation, all joined to the
+/// `TurnId` they conclude. Producing this value publishes nothing; only
+/// event admission makes a proposal an accepted fact, and only effect
+/// admission mints an intent.
+#[must_use]
+pub struct StitchAdvance {
+    next: ProcessState,
+    /// The concluded Turn's record — the typed join the logical book
+    /// assembles beside the frozen `Turn`.
+    conclusion: TurnConclusion,
 }
 
 /// Closed refusal family of the Stitch transition. Every variant names the
@@ -292,7 +327,11 @@ pub struct EffectIntent {
 }
 
 /// Commitment over the canonical bytes of the admitted proposal, so the
-/// durable record can prove exactly which proposal it strengthened.
+/// durable record can prove exactly which proposal it strengthened. The
+/// proposal's canonical bytes — naming its port operation, contract version,
+/// and request-value commitment — publish with the intent record through the
+/// runtime storage family, so the exact physical request remains realizable
+/// from the durable record alone; this commitment proves the correspondence.
 pub struct EffectProposalCommitment {
     /* closes with the canon profile */
 }
@@ -706,7 +745,9 @@ pub struct JoinBranchId {
 /// Everything one branch established, preserved without loss.
 pub struct JoinBranchRecord {
     branch: JoinBranchId,
-    conclusion: BranchConclusion,
+    /// The branch's semantic conclusion — the same two-road role the Turn
+    /// record carries; declared once with the logical-runtime nouns.
+    conclusion: SemanticConclusion,
     /// The intents this branch durably admitted (they survive regardless of
     /// sibling outcomes).
     effects: AdmittedIntentSet,
@@ -716,13 +757,6 @@ pub struct JoinBranchRecord {
     /// Program-owned portable work accounting.
     work: ConsumedSemanticWork,
     /* evidence references */
-}
-
-/// One branch's semantic conclusion: its result or its typed refusal —
-/// both program-owned roles, preserved without collapse.
-pub enum BranchConclusion {
-    Returned(ImmediateResult),
-    Refused(DecisionRefusal),
 }
 
 /// The bounded set of intents one branch durably admitted.
@@ -852,6 +886,18 @@ pub struct AttemptLineage {
     /* parent and fate-link references; closes with the admission contract */
 }
 
+/// The closed physical premise set one admission plan is checked against:
+/// required port bindings and grant identities with their expected
+/// generations and revocation posture, the target profile, the
+/// participating clock domains, the reservation dimensions, and the report
+/// requirements. Derived from the Turn's admitted program invocation and
+/// its operation's declared port contract — program- and port-owned
+/// declarations carried here as data; this type mints no authority and
+/// installs nothing.
+pub struct PhysicalAdmissionRequirements {
+    /* requirement rosters; close with the admission contract */
+}
+
 /// The closed physical admission plan for one admitted logical invocation.
 #[must_use]
 pub struct AdmissionPlan {
@@ -861,10 +907,10 @@ pub struct AdmissionPlan {
     turn: TurnId,
     cuts: FrozenTurnInputs,
     deadline: AbsoluteDeadline,
-    /* required ports and grants, authority generations and revocation
-     * posture, semantic and physical bounds, target profile, clock
-     * domains, reservation dimensions, and report requirements — rosters
-     * close with the admission contract */
+    /// The closed physical premise set this plan was checked against.
+    requirements: PhysicalAdmissionRequirements,
+    /* semantic and physical bound bindings close with the admission
+     * contract */
 }
 
 /// Closed refusal family for physical admission. A refusal here means no
@@ -1007,10 +1053,9 @@ pub struct PortRequestLimit {
     limit: NonZeroU32,
 }
 
-/// Maximum bytes one validated port response may occupy.
-pub struct PortResponseLimit {
-    limit: NonZeroU64,
-}
+// The response byte ceiling is the port owner's `PortResponseByteLimit` —
+// its declaration seat is the port contract; this owner consumes it inside
+// response binding and declares no twin.
 
 /// Identity of one admitted absolute-deadline commitment, so a carried
 /// allowance at the port boundary can name exactly which commitment it
@@ -1062,6 +1107,15 @@ pub struct CheckpointStorageProfile {
 /// contract, never widening it.
 pub struct ReconciliationProfile {
     /* declared axes; closes with the reconciliation contract */
+}
+
+/// The declared algebra of one effect-admission profile: the declared
+/// effect bounds REQUEST/PEND admission enforces and the required
+/// idempotency-ladder posture — each selecting within the operation's
+/// declared contracts, never widening one. Depot rows select coordinates
+/// inside it.
+pub struct EffectAdmissionProfile {
+    /* declared axes; closes with the effect-admission contract */
 }
 
 /// The declared algebra of one panic containment profile. The posture
