@@ -9,8 +9,8 @@
 //! when the dependency probe seats real imports: `Cut`, `FederationCut`,
 //! `SourceSet`, `SourceSetId`, `EventProposal`, `ReferenceFrameId`,
 //! `AcceptedEvent` (event); `PortFamilyId`, `PortOperationId`,
-//! `PortContractVersion` (port); `ContinuationByteLimit`, `DeadlinePolicy`
-//! (runtime); `SchemaId`,
+//! `PortContractVersion`, `PortValueRole` (port); `ContinuationByteLimit`,
+//! `DeadlinePolicy` (runtime); `SchemaId`,
 //! `FieldId`, `BoundClass`, `Truth`, `Decision` (core). `EventProposal` is
 //! the event owner's noun — this owner carries it, never declares it. The
 //! durable `EffectIntent` record is runtime-owned; this owner declares only
@@ -412,7 +412,12 @@ pub struct EffectProposal {
     operation: PortOperationId,
     /// The exact port contract version `operation` is declared under.
     contract: PortContractVersion,
-    request_role: SchemaId,
+    /// The value role the request occupies in the named operation — the
+    /// port owner's role noun. A schema identifies bytes' meaning; the role
+    /// identifies which seat those bytes fill in this operation. The role's
+    /// schema binding lives in the admitted port contract
+    /// (`PortValueRoleBinding`), cited, never mirrored here.
+    request_role: PortValueRole,
     /// Canonical commitment over the request value — what the durable
     /// `EffectIntent` references. Must agree with `request`; neither field
     /// is public.
@@ -422,8 +427,9 @@ pub struct EffectProposal {
 }
 
 /// The canonical request value of one effect proposal, bound at construction
-/// to the proposal's declared `request_role` schema commitment. The canonical
-/// value body closes with the codec profile.
+/// to the schema the admitted port contract binds to the proposal's declared
+/// `request_role` under the named operation. The canonical value body closes
+/// with the codec profile.
 pub struct EffectRequestValue {
     /* canonical request-value body; closes with the codec profile */
 }

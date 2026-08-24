@@ -350,11 +350,15 @@ pub struct KeyScopeId {
     /* closes with the identity profile; width cites depot/core.md */
 }
 
-/// Key material currently valid under one `KeyScopeId`. Declared here so
-/// keyed derivation signatures can name it; minted, held, rotated, and
-/// destroyed by the host's key custody — never by any core operation.
-/// Never `Clone`, never serialized, never formatted or logged (custody law,
-/// README §3).
+/// Key material currently valid under one `KeyScopeId` for **keyed-digest
+/// derivation** — this role, not universal secret-authority law. The 32-byte
+/// width is a mechanism fact of the blake3 keyed mode; a future key kind
+/// that is not a keyed-digest key (an encryption key, an external-custody
+/// handle) is a distinct role minted with its consumer, never a widening of
+/// this one. Declared here so keyed derivation signatures can name it;
+/// minted, held, rotated, and destroyed by the host's key custody — never
+/// by any core operation. Never `Clone`, never serialized, never formatted
+/// or logged (custody law, README §3).
 pub struct ScopedKey {
     scope: KeyScopeId,
     /* key bytes; width cites depot/core.md row keyed-digest-key (ratified

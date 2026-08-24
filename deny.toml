@@ -24,8 +24,11 @@ wildcards = "deny"
 # A path dependency is resolved by the path; it carries no version to be wild about.
 allow-wildcard-paths = true
 
-# The digest: the empty set is the claim.
-# No crate in the graph may switch anything on in the hash implementation.
+# The digest: the empty set is the strictest posture and holds until the
+# manifest pass. It is superseded there by the per-realization qualification
+# rows (depot/core.md, blake3-realization-* and blake3-feature-reconciliation):
+# each realization profile declares its exact feature row against
+# default-features = false, and this flat set is replaced, not widened.
 [[bans.features]]
 crate = "blake3"
 allow = []

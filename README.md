@@ -12,4 +12,4 @@ Macroonz removes repetitive Rust. It generates ThreadPak-facing implementations 
 
 **Ordinary surface:** Store · Event · Coordinate · Query · View · Subscription · Program · Port · Receipt
 
-**Expert surface:** Cut · Region · PartitionEpoch · SelectionMask · DataBlock · ProgramImage · Turn · Attempt · Checkpoint · OutcomeUnknown · Reconciliation
+**Expert surface:** Cut · Region · AuthorityEpoch · SelectionMask · DataBlock · ProgramImage · Turn · Attempt · Checkpoint · OutcomeUnknown · Reconciliation
