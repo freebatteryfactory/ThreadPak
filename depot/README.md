@@ -18,6 +18,35 @@ Every depot entry names its consuming owner. The depot never defines meaning, ne
 
 Algorithms. Branches. State machines. Runtime-generated evidence. Qualification workflows. Anything that computes, decides, or changes at runtime. A depot file that computes anything is in the wrong home.
 
+## Rows are passed, never fetched
+
+The depot is an explicit typed fact plane, not a lookup service. The law that makes the pattern work without cycles:
+
+- Each owner declares its **profile types** — the lawful configuration algebra — beside its other types. The depot depends on those types; it selects coordinates inside them.
+- **Owner operations never import selected depot rows.** Every thin operation receives the exact profile or row it consumes as an ordinary typed argument. Composition imports both and passes the row in.
+- No ambient registry, no global depot context, no god-profile aggregating everything for every call. A root composition value may bundle profiles for ergonomics; each operation still receives only its exact slice.
+- One browsable central depot index is a **generated projection** (Macroonz), never a second authority. The owner-local row is the source; projections regenerate and cannot drift.
+
+## Every row is classified before it enters
+
+The recovered corpus carries six species of number, and only some are depot material:
+
+1. **Settled semantic rosters** — become owner enums and relationships, not depot rows.
+2. **Selected values and profiles** — the depot's residents.
+3. **Evidence-selected mechanisms** — depot rows in qualified mechanism profiles, never semantic identity.
+4. **Explicitly withheld values** — recorded as rows with status *withheld*; the depot never invents the selection.
+5. **Illustrative numbers** — teach a law; never become defaults.
+6. **Rhetorical magnitudes and document counts** — never enter.
+
+## Binding time and change consequence
+
+Every row declares when its value binds and what changes when the row changes; a row without both is invalid:
+
+- **Binding time:** artifact-bound · generation-bound · deployment-bound · invocation-bound · test-only.
+- **Change consequence:** requalification only · new mechanism generation · new materialization generation · new image identity · new canonical/identity profile · new persisted-format version · compatible override.
+
+Alongside the classified default posture (below), each row also records: source (exact provenance), authority class, owning family, semantic role, current status (ratified / candidate / withheld / contradiction), consuming operations, nonclaims, and the falsifier that would catch its misuse. Contradictory recovered values are preserved as separate rows — never averaged.
+
 ## Law, configuration, mechanism, release
 
 ThreadPak law defines each complete lawful algebra. An application or deployment selects a coordinate inside that algebra through a depot profile. A qualified mechanism realizes the selection. A release row promises only what evidence supports. The depot records selections; it never invents an axis, and a profile can never widen the algebra its owner declared.
