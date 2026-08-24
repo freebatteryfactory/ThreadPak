@@ -288,8 +288,9 @@ pub enum CarriedAllowance {
     },
     /// A narrower remaining allowance derived from the expiry.
     RemainingAllowance {
-        /* unsigned span (core Duration role); representation closes with
-         * the clock profile rows */
+        /* unsigned span (`core::time::Duration` — the std role, per the
+         * owner's stdlib-batteries ruling); domain interpretation closes
+         * with the clock profile rows */
     },
 }
 
@@ -404,16 +405,41 @@ pub enum UncertaintyPosture {
     RefuseUnknown,
 }
 
-/// A raw wall-time observation: foreign temporal material. It becomes
-/// accepted chronology only through the chronology owner's admission.
-/// It is never an `AcceptedHlc`, a `CommitPoint`, an order, or a Cut.
-/// Whether a reading carries per-observation uncertainty bounds or leans on
-/// the profile's posture is a recorded escalation (README, Escalation 1).
+/// The uncertainty one clock source reports beside one reading. A physical
+/// claim carries its own evidence: once an observation leaves its request,
+/// nothing else can say how wide it is. `Unstated` is a fact about the
+/// source, not a license — it resolves only through the profile's
+/// `UncertaintyPosture`, and never to zero (owner-ruled 2026-08-24).
+pub enum ReportedUncertainty {
+    /// The source states its bounds: the reading is no earlier than
+    /// `before` behind and no later than `after` ahead of the true value.
+    /// An explicit zero/zero claim is the only lawful point observation.
+    Bounded {
+        before: core::time::Duration,
+        after: core::time::Duration,
+    },
+    /// The source states no uncertainty. Resolved by the profile posture:
+    /// widened to the declared maximum, or refused.
+    Unstated,
+}
+
+/// A raw wall-time observation: foreign temporal material carrying its own
+/// evidence — the reading, the profile it was requested under, and the
+/// uncertainty the source reported. It becomes an admitted `WallObservation`
+/// only through this owner's `admit_wall_observation`, and accepted
+/// chronology only through the chronology owner's admission over the
+/// admitted form — never over this one. It is never an `AcceptedHlc`, a
+/// `CommitPoint`, an order, or a Cut.
 pub struct RawWallObservation {
     domain: ClockDomainId,
+    /// The profile this observation was requested under; admission refuses
+    /// a raw value whose profile is not the one it is admitted against.
+    profile: ClockProfileVersion,
     /// Uninterpreted source reading; interpretation belongs to admission.
     /// Representation closes with the clock profile rows (depot/port.md).
     reported: WallReading,
+    /// What the source itself claimed about this reading's width.
+    uncertainty: ReportedUncertainty,
 }
 
 /// The uninterpreted wall reading role.
@@ -421,13 +447,34 @@ pub struct WallReading {
     /* signed reading; representation closes with the clock profile rows */
 }
 
-/// A raw monotonic observation in one clock domain. Process-local
-/// physics: it never serializes into durable state and never crosses
-/// clock domains. Consumed by the runtime deadline owner's rebase.
+/// One admitted wall observation: the enclosure. Validation under the
+/// `ClockSourceProfile` turned the raw reading and its reported uncertainty
+/// into earliest/latest bounds — a point observation is the degenerate
+/// enclosure and exists only where the source explicitly claimed zero
+/// uncertainty. Private construction: possession proves admission under the
+/// named domain and profile ran. This is the only wall form the chronology
+/// owner's admission consumes (owner-ruled 2026-08-24).
+#[must_use]
+pub struct WallObservation {
+    domain: ClockDomainId,
+    profile: ClockProfileVersion,
+    earliest: WallReading,
+    latest: WallReading,
+}
+
+/// A raw monotonic observation in one clock domain, carrying the same
+/// evidence as its wall sibling: reading, requested profile, reported
+/// uncertainty. Process-local physics: it never serializes into durable
+/// state and never crosses clock domains. It becomes an admitted
+/// `MonotonicObservation` only through `admit_monotonic_observation`.
 pub struct RawMonotonicObservation {
     domain: ClockDomainId,
+    /// The profile this observation was requested under.
+    profile: ClockProfileVersion,
     /// Representation closes with the clock profile rows (depot/port.md).
     reported: MonotonicReading,
+    /// What the source itself claimed about this reading's width.
+    uncertainty: ReportedUncertainty,
 }
 
 /// The uninterpreted monotonic reading role.
@@ -435,9 +482,24 @@ pub struct MonotonicReading {
     /* unsigned reading; representation closes with the clock profile rows */
 }
 
+/// One admitted monotonic observation: the enclosure, same law as
+/// `WallObservation`. Private construction: possession proves admission
+/// under the named domain and profile ran. This is the only monotonic form
+/// the runtime deadline owner's rebase consumes — a raw observation is
+/// never deadline evidence.
+#[must_use]
+pub struct MonotonicObservation {
+    domain: ClockDomainId,
+    profile: ClockProfileVersion,
+    earliest: MonotonicReading,
+    latest: MonotonicReading,
+}
+
 /// The wall-observation contract. Role-specific: this trait is not a
 /// clock, not chronology, and not deadline authority. One host adapter
 /// may implement both observation contracts; the contracts never merge.
+/// An adapter returns the raw form only; strengthening into the admitted
+/// enclosure is this owner's admission operation, never the adapter's.
 pub trait WallObservationPort {
     fn observe_wall(
         &mut self,
@@ -614,24 +676,33 @@ pub enum PortResponseRefusal {
     DeadlineExpired,
 }
 
-/// Refusal of a wall observation.
+/// Refusal of a wall observation — at the adapter's observation or at this
+/// owner's admission into the enclosure.
 pub enum WallObservationRefusal {
     UnknownDomain,
-    /// The requested profile is not the declared profile of the domain.
+    /// The requested or carried profile is not the declared profile of the
+    /// domain — including a raw observation admitted against a profile it
+    /// was not requested under.
+    ProfileMismatch,
+    SourceUnavailable,
+    ProfileViolation,
+    /// The source stated no uncertainty and the profile's posture refuses
+    /// unknown uncertainty. Under `DeclaredMaximum` this variant is
+    /// unreachable: the enclosure widens instead.
+    UncertaintyUnknown,
+}
+
+/// Refusal of a monotonic observation — at the adapter's observation or at
+/// this owner's admission into the enclosure.
+pub enum MonotonicObservationRefusal {
+    UnknownDomain,
+    /// Same law as the wall sibling, admission included.
     ProfileMismatch,
     SourceUnavailable,
     ProfileViolation,
     /// The source stated no uncertainty and the profile's posture refuses
     /// unknown uncertainty.
     UncertaintyUnknown,
-}
-
-/// Refusal of a monotonic observation.
-pub enum MonotonicObservationRefusal {
-    UnknownDomain,
-    ProfileMismatch,
-    SourceUnavailable,
-    ProfileViolation,
 }
 
 /// Refusal of a quarantine store.
