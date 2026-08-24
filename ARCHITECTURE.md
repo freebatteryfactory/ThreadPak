@@ -25,7 +25,7 @@ foreign claim / command / physical observation
      delta                result
              ╲               ╱
       values / Fixes / decisions / routes
-      event proposals / explicit EffectIntents
+      event proposals / explicit effect proposals
                      │
                      ▼
                runtime Stitch
@@ -48,7 +48,7 @@ Admission is not a third computational lane. Bvisor is not a second runtime. A p
 
 ## What owns fact
 
-Accepted event history owns domain fact. Role-specific runtime records own only the exact facts they establish — an `AttemptReport` owns one physical effort's observations; an accepted checkpoint advance owns one consumer's right to skip completed logical work. Views, indexes, DataBlocks, caches, route plans, and physical plans are derived and rebuildable. When a maintained result disagrees with accepted history, the maintained result is stale, corrupt, incomplete, or wrong — never the history.
+Accepted event history owns domain fact. Role-specific runtime records own only the exact facts they establish — an `AttemptReport` owns one physical effort's observations; an accepted checkpoint advance owns one consumer's right to skip completed logical work; a durably admitted `EffectIntent` owns one logical external commitment. A program's `EffectProposal` is inert data; only REQUEST or PEND admission strengthens it into an `EffectIntent`, exactly as only event admission strengthens an `EventProposal` into an `AcceptedEvent`. Views, indexes, DataBlocks, caches, route plans, and physical plans are derived and rebuildable. When a maintained result disagrees with accepted history, the maintained result is stale, corrupt, incomplete, or wrong — never the history.
 
 Not everything is an event. These roles answer different questions and never substitute for one another:
 
@@ -57,7 +57,8 @@ Command          something requested
 Observation      something seen from outside
 EventProposal    a proposed fact, not yet authoritative
 AcceptedEvent    an immutable fact admitted into history
-EffectIntent     a durable intent to affect the outside world
+EffectProposal   a proposed external effect, inert until admitted
+EffectIntent     a durably admitted intent to affect the outside world
 PortRequest      one physical request
 AttemptReport    what one physical Attempt observed
 View             derived state
