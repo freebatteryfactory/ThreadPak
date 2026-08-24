@@ -4,7 +4,8 @@
 //! derives — a derive is a semantic claim minted per type at the guard pass.
 //! Thin operation signatures live in `ops.rs`; the selected values every
 //! width, grammar, and mechanism fact below cites live in `depot/core.md`
-//! (candidate rows awaiting owner ratification, per the depot row law).
+//! (ratified by the canon-packet mint of 2026-08-24, or carried
+//! candidate/qualification/withheld per row status, per the depot row law).
 //!
 //! Profile types here are ALGEBRA — what may lawfully be selected. A depot
 //! row selects one coordinate inside that algebra. Operations receive the
@@ -203,17 +204,12 @@ pub struct TimeDelta {
     magnitude: i128,
 }
 
-/// An unsigned span. Not a `TimeDelta`, not a deadline, not a limit — a
-/// `Time`-class bound wraps one where an owner declares a ceiling. The name
-/// collision with `core::time::Duration` is a recorded escalation; the std
-/// type may serve as private substrate in mechanism code, never as this
-/// semantic role.
-pub struct Duration {
-    /// Unsigned magnitude; substrate u128 per depot/core.md row
-    /// `time-substrate` (candidate — matches
-    /// `RawMonotonicObservation.reported`).
-    magnitude: u128,
-}
+// Unsigned spans are `core::time::Duration` (owner ruling 2026-08-24,
+// stdlib-batteries applied): a type is not contaminated by a method
+// (`saturating_sub`) semantic code never calls — ThreadPak semantic
+// operations use only checked operations on it. Owner-specific Time-class
+// wrappers (horizons, ceilings, allowances) keep their roles at their
+// owners; no custom generic span type exists here.
 
 // ---------------------------------------------------------------------------
 // schema — commitment identities and the shape laws with carriers
@@ -223,7 +219,7 @@ pub struct Duration {
 /// occurrence identity; equal widths never substitute. Derives from the
 /// schema's `SchemaCommitment` under the identity profile.
 pub struct SchemaId {
-    /* width cites depot/core.md row digest-width-class-ab (candidate) */
+    /* width cites depot/core.md row digest-width-class-ab (ratified) */
 }
 
 /// Version of one schema commitment. A removed field or variant identity is
@@ -231,7 +227,7 @@ pub struct SchemaId {
 /// compatible.
 pub struct SchemaVersion {
     /* Class-C scoped ordinal; width cites depot/core.md row
-     * class-c-order-scalar (candidate) */
+     * class-c-order-scalar (ratified) */
 }
 
 /// Identity of one field within one schema commitment. Field identity
@@ -316,12 +312,33 @@ pub enum IdentityClass {
     /// Exact order assigned by one writer authority; scope-guarded, no
     /// derived `Ord`, no cross-scope comparison.
     AuthorityOrder,
-    /// Fresh opaque bytes; a reader parses no structure from them.
+    /// One occurrence among possible equals; a reader parses no structure
+    /// from it. Whether it is minted fresh or derived is the family's
+    /// `IdentityCreationLaw`, never implied by this class.
     Occurrence,
     /// A composition of referenced identities.
     TypedReference,
     /// Schema-declared within the application namespace.
     ApplicationScope,
+}
+
+/// How one identity family's values are minted — the second column of the
+/// restored two-column identity law (owner mint 2026-08-24). Identity class
+/// (what kind of identity) and creation law (how it is minted) are
+/// independent columns: `IdentityClass` never implies a creation law. An
+/// occurrence may be derived (`TurnId` — replay converges on the same
+/// identity) or fresh (a 16-byte opaque id); every identity family's
+/// register row carries both columns.
+pub enum IdentityCreationLaw {
+    /// Deterministically derived from a declared canonical preimage under a
+    /// registered digest role; replay converges on the same identity.
+    DerivedCommitment,
+    /// Fresh opaque bytes; uniqueness rides entropy, and no preimage
+    /// exists.
+    FreshOpaque,
+    /// Assigned by one authority's own law (a register, a writer, an
+    /// admission operation) — neither derived nor entropy-fresh.
+    AuthorityAssigned,
 }
 
 /// Identity of one key scope — the boundary under which keyed commitments
@@ -336,10 +353,12 @@ pub struct KeyScopeId {
 /// Key material currently valid under one `KeyScopeId`. Declared here so
 /// keyed derivation signatures can name it; minted, held, rotated, and
 /// destroyed by the host's key custody — never by any core operation.
-/// Never `Clone`, never serialized.
+/// Never `Clone`, never serialized, never formatted or logged (custody law,
+/// README §3).
 pub struct ScopedKey {
     scope: KeyScopeId,
-    /* key bytes; width cites depot/core.md row keyed-digest-key (candidate) */
+    /* key bytes; width cites depot/core.md row keyed-digest-key (ratified
+     * with the canon packet — 32 bytes, mechanism-forced by keyed mode) */
 }
 
 /// Identity of one digest family. The family id sits inside every
@@ -359,17 +378,19 @@ pub struct DigestFamilyId {
 pub struct DigestProfile {
     family: DigestFamilyId,
     /* realization selection cites depot/core.md rows
-     * blake3-realization-* (candidate) */
+     * blake3-realization-* (qualification rows — selection is evidence,
+     * never taste) */
 }
 
 /// The identity-profile algebra: the facts one identity profile binds.
 /// The selected values are the depot/core.md rows this type provenances —
-/// per-class widths, byte order, text form, and the tag register. No owner
-/// hard-codes any of them independently; every width in every home cites
-/// its row here.
+/// per-class widths, byte order, text form, per-family creation law, and
+/// the tag register. No owner hard-codes any of them independently; every
+/// width in every home cites its row here.
 pub struct IdentityProfile {
     digest: DigestProfile,
-    /* per-class width rows, byte-order row, and text-form row are the
+    /* per-class width rows, byte-order row, text-form row, and the
+     * per-family `IdentityClass` + `IdentityCreationLaw` columns are the
      * depot/core.md selections this profile binds */
 }
 
@@ -388,21 +409,42 @@ pub struct TagRoleId {
     /* registered id; width cites depot/core.md row registered-id-width */
 }
 
+/// Registered identity of one preimage family (the `<family>` segment) —
+/// the identity family whose commitments derive under the tag. Distinct
+/// from the digest family: one names what is being committed, the other
+/// names the algorithm committing it.
+pub struct PreimageFamilyId {
+    /* registered id; width cites depot/core.md row registered-id-width */
+}
+
+/// Version of one tag role's preimage contract (the `<role-version>`
+/// segment) — bumped when the role's preimage grammar changes. A schema
+/// version lives inside a schema-family preimage where one exists; it is
+/// not a universal axis on every tag — many identity families (Turn,
+/// Attempt, checkpoint advances) have no schema.
+pub struct RoleVersion {
+    /* Class-C scoped ordinal; width cites depot/core.md row
+     * class-c-order-scalar (ratified) */
+}
+
 /// One entry of the domain-tag register. The register is the single source
 /// of domain separation; its four projections (derivation context, text
 /// prefix, wire role, documentation table) are generated from it and
 /// structurally cannot drift. A hand-edited projection is invalid.
 ///
-/// String form (depot/core.md row `domain-tag-grammar`, candidate):
-/// `threadpak/<tag-version>/<family>/<role>/<schema-version>` — the digest
-/// family rides inside the tag, so an identity names its algorithm by
-/// construction. Non-full-width outputs are distinct registered roles,
-/// never ad-hoc truncations.
+/// String form (depot/core.md row `domain-tag-grammar`, ratified as
+/// retouched 2026-08-24):
+/// `threadpak/<tag-version>/<digest-family>/<family>/<role>/<role-version>`
+/// — the digest family rides inside the tag, so an identity names its
+/// algorithm by construction, and the final segment is the role's own
+/// version, never a universal schema version. Non-full-width outputs are
+/// distinct registered roles, never ad-hoc truncations.
 pub struct DomainTag {
     tag_version: TagVersion,
-    family: DigestFamilyId,
+    digest_family: DigestFamilyId,
+    preimage_family: PreimageFamilyId,
     role: TagRoleId,
-    schema_version: SchemaVersion,
+    role_version: RoleVersion,
 }
 
 /// The composed canonical bytes of one declared preimage family, admitted
@@ -428,9 +470,9 @@ pub enum PreimageRefusal {
 /// parsed. Equality is the only lawful comparison, and constant-time where
 /// the role is protected.
 pub struct Digest {
-    /// Width: depot/core.md row `digest-width-class-ab` (candidate, 32
-    /// bytes, ch10 provenance). Other widths are distinct registered
-    /// roles via XOF, never truncations of this one.
+    /// Width: depot/core.md row `digest-width-class-ab` (ratified
+    /// 2026-08-24, 32 bytes, ch10 provenance). Other widths are distinct
+    /// registered roles via XOF, never truncations of this one.
     bytes: [u8; 32],
 }
 
@@ -444,8 +486,9 @@ pub struct DeriveKeyContext {
 /// The canon-profile algebra: byte order, integer posture, text form,
 /// framing, and the tag register — the facts whose selected values are the
 /// depot/core.md canon rows (big-endian, fixed-width no varints, bech32m
-/// text form, TPAK framing — all candidate). Mechanism selections are
-/// profile facts cited from here, never restated per call site.
+/// text form, `ThreadPakFrameV1` framing — ratified by the canon mint per
+/// row status). Mechanism selections are profile facts cited from here,
+/// never restated per call site.
 pub struct CanonProfile {
     identity: IdentityProfile,
     tag_grammar: TagVersion,
