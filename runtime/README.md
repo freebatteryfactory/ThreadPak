@@ -36,11 +36,11 @@ Stitch produces event *proposals*. Only event admission makes them accepted fact
 Two operation postures for external work:
 
 ```text
-REQUEST   durably admit one external EffectIntent and return without waiting
-          for physical completion
+REQUEST   admit one program-produced EffectProposal as a durable EffectIntent
+          and return without waiting for physical completion
 
-PEND      durably admit the same kind of EffectIntent, drive one immediate
-          bounded Attempt, and observe within explicit bounds
+PEND      admit the same proposal as a durable EffectIntent, drive one
+          immediate bounded Attempt, and observe within explicit bounds
 ```
 
 PEND never means wait-forever, retry-until-green, or hide-a-Future-inside-the-semantics. An effect admitted before a later semantic refusal remains admitted and receipted; there is no imaginary rollback. The spelling is PEND — nothing waits; a suspension is explicit typed state, not a blocked thread of meaning.
@@ -175,8 +175,8 @@ Fact: what one subscription means and that push-maintained results equal pull re
 **Port contracts and clock observations.**
 Fact: the typed boundary grammar for external operations and physical time. Owner: port. Establishing operation: port contract declaration; host adapters realize it. Carrier: Bvisor binds requests to Attempts and validates responses; the deadline owner consumes monotonic observations; wall observations belong to event chronology, not to this home. Substitution refusal: no ambient clock exists anywhere in this home, and a response satisfying different correctness coordinates refuses. Chronology: carries the role-specific clock-contract ruling of 2026-08-24; derives from ARCHITECTURE.md rail 8.
 
-**EffectIntent.**
-Fact: one durable intent to affect the outside world. Owner: program — transitions produce it. Establishing operation: durable intent admission under REQUEST or PEND. Carrier: the runtime holds the outstanding relationship; Bvisor realizes it through fresh Attempts; reconciliation concludes it. Substitution refusal: neither runtime nor Bvisor mints or edits effect meaning, and an admitted intent survives any later semantic refusal. Chronology: carries ARCHITECTURE.md "What owns fact".
+**EffectProposal and EffectIntent.**
+Fact: one durably admitted intent to affect the outside world. Meaning owner: program — a transition produces the inert `EffectProposal` that declares the effect. Record owner: this home — REQUEST or PEND admission consumes the proposal and mints the durable `EffectIntent`, and this owner holds its publication contract and the outstanding relationship; Bvisor realizes it through fresh Attempts; reconciliation concludes it. Substitution refusal: a proposal is not an admitted intent; neither runtime nor Bvisor mints or edits effect *meaning*; an admitted intent survives any later semantic refusal. Chronology: carries ARCHITECTURE.md "What owns fact" and the effect proposal/admission split (owner-ruled 2026-08-24).
 
 Generated implementations and harness descriptors may realize plumbing declared by this contract; Macroonz participates at build time and test time, never in runtime authority.
 

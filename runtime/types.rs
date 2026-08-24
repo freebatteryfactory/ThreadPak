@@ -2,10 +2,13 @@
 //!
 //! Declarations only. Operations live in verb-named modules beside this file;
 //! no behavior is defined here. Crossing types named in field positions —
-//! `ExecutableProgramImage`, `PublicationIntent`, `EffectIntent` (program),
-//! `Cut`, `AcceptedEvent` (event), `PortRequest`, `MonotonicObservation`
+//! `ExecutableProgramImage`, `EventProposals`, `EffectProposal` (program),
+//! `Cut`, `AcceptedEvent` (event), `PortRequest`, `RawMonotonicObservation`
 //! (port) — are foreign-owned; their declarations live with their owners and
-//! resolve by import when the homes are seated.
+//! resolve by import when the homes are seated. The durable `EffectIntent`
+//! record — minted by REQUEST and PEND admission from a program's
+//! `EffectProposal` — is this owner's, declared with the effect-admission
+//! repair pass alongside its publication contract.
 //!
 //! Derive discipline: `Clone`, `Copy`, `Serialize`, `Deserialize`, `Ord`, and
 //! `Hash` are semantic claims. A type without them here must not acquire them
@@ -334,9 +337,9 @@ pub enum VmStep {
     Returned(VmValue),
     /// Execution-state integrity was violated; this is not image validation.
     Refused(ExecutionIntegrityRefusal),
-    /// The program produced an event-publication intent (program-owned
-    /// crossing; event admission decides acceptance).
-    Publication(PublicationIntent),
+    /// The program produced event proposals (the program owner's carrier
+    /// over the event owner's noun; event admission decides acceptance).
+    Publication(EventProposals),
     /// The program produced one typed port request and one bounded one-shot
     /// suspension (`PortRequest` is port-owned).
     Requested {
