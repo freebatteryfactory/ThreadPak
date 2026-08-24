@@ -6,7 +6,7 @@
 //!
 //! Foreign roles referenced by name and declared by their own owners:
 //! `AttemptId` (Bvisor), `EffectIntentId` and `TurnId` (runtime),
-//! `Cut` and `AuthorityGeneration` (event), `AcceptedHlc` (event chronology).
+//! `Cut` (event), `AcceptedHlc` (event chronology).
 //! Their declaration seats are fixed by the dependency probe, never by this
 //! file. Referencing a foreign role grants nothing and mints nothing.
 
@@ -132,8 +132,17 @@ pub enum ReplaySafety {
 // Authority
 // ---------------------------------------------------------------------------
 
+/// Generation of one port-grant relationship. Role-specific — no shared
+/// authority-generation type exists until two real grant families prove
+/// identical attenuation behavior (the core owner's extraction bar).
+pub struct PortGrantGeneration(/* guarded */ u64);
+
+/// Generation of one quarantine-grant relationship. Role-distinct from
+/// `PortGrantGeneration` even where widths match.
+pub struct QuarantineGrantGeneration(/* guarded */ u64);
+
 /// The admitted authority to attempt operations of one family under one
-/// scope, current under one authority generation. This is the admitted
+/// scope, current under one grant generation. This is the admitted
 /// record; the live installed handle is Bvisor custody and is not this
 /// type. A serialized grant is data — decoding one installs nothing.
 #[must_use]
@@ -141,7 +150,7 @@ pub struct PortGrant {
     family: PortFamilyId,
     /// Exact permitted operations; never widened by composition.
     operations: PortOperationSet,
-    generation: AuthorityGeneration,
+    generation: PortGrantGeneration,
 }
 
 /// The admitted authority to store or read quarantined foreign material.
@@ -149,7 +158,7 @@ pub struct PortGrant {
 /// and no quarantine grant authorizes re-admission.
 #[must_use]
 pub struct QuarantineGrant {
-    generation: AuthorityGeneration,
+    generation: QuarantineGrantGeneration,
 }
 
 // ---------------------------------------------------------------------------
@@ -167,7 +176,7 @@ pub struct PortRequest {
     /// The one physical effort this request belongs to (Bvisor-owned role).
     attempt: AttemptId,
     /// Authority this request executes under, at issue-time generation.
-    grant_generation: AuthorityGeneration,
+    grant_generation: PortGrantGeneration,
     /// Carried, never minted here: the operation's absolute deadline or a
     /// narrower allowance derived from it. Nothing downstream extends it.
     deadline: CarriedAbsoluteDeadline,
@@ -304,6 +313,7 @@ pub struct QuarantineRetention {
     max_items: u32,
     max_bytes: u64,
     max_age_ticks: u64,
+    max_work: QuarantineWorkLimit,
     deletion: QuarantineDeletionRoute,
 }
 
@@ -335,6 +345,11 @@ pub struct PortRequestByteLimit(/* nonzero */ u64);
 /// Ceiling on one response's accepted bytes; material beyond it refuses
 /// before allocation. Result class.
 pub struct PortResponseByteLimit(/* nonzero */ u64);
+
+/// Ceiling on the work one quarantine store or expiry pass may consume —
+/// the fourth guardrail dimension the quarantine contract promises.
+/// Work class.
+pub struct QuarantineWorkLimit(/* nonzero */ u64);
 
 // ---------------------------------------------------------------------------
 // Refusals — role-specific; exact body shapes finalize in the type pass
