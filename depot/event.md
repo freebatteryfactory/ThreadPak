@@ -1,15 +1,10 @@
 # Depot — event owner rows
 
-Selected and recovered facts consumed by the event owner's operations
-(`event/ops.rs`), per the depot row law (`depot/README.md`): rows are passed
-into operations as fields of the profiles in `event/types.rs`, never fetched.
-A row records a selection or its deliberate absence; a **withheld** row means
-the owner has not selected a value and nothing may invent one. Contradictory
-recovered values are preserved as separate rows, never averaged.
+Selected and recovered facts consumed by the event owner's operations (`event/ops.rs`), per the depot row law (`depot/README.md`): rows are passed into operations as fields of the profiles in `event/types.rs`, never fetched.
+A row records a selection or its deliberate absence; a **withheld** row means the owner has not selected a value and nothing may invent one.
+Contradictory recovered values are preserved as separate rows, never averaged.
 
-Authority classes below: **ruling** (owner-ruled law), **recovered** (mined
-from the archived corpus with provenance), **owner-derived** (forced by
-declared law, value open).
+Authority classes below: **ruling** (owner-ruled law), **recovered** (mined from the archived corpus with provenance), **owner-derived** (forced by declared law, value open).
 
 ## Admission (profile: `EventAdmissionProfile`)
 
@@ -23,11 +18,8 @@ declared law, value open).
 | event.federation-source-limit | `FederationSourceLimit` | — | withheld · cap ruled kept (owner 2026-08-24) | deployment | refusal change | The cap-versus-no-cap fork is disposed: the cap stays as a typed admission bound — every actual operation is finitely bounded, and no eternal product-wide source count is implied. The numeric value remains withheld, profile-selected. Provenance preserved: the book states no cap anywhere ("one exact durable cut per store and never invents a global commit sequence" — cardinality law, no cap). |
 | event.recovery-scan-budget | `RecoveryScanBudget` (`RecoveryProfile`) | — | withheld | deployment | recovery-behavior change | Book bounds recovery work, names no number. Recovery boundary law (committed-boundary-bounded) is ratified separately below. |
 
-Family nonclaims: a limit value is never the bound's meaning; a value outside
-the declared type refuses at construction. Family falsifiers: an oversize
-admission accepted; a bound checked only after allocation ("a bound checked
-after a collection grew is theater" — ch07); unknown size not charged at the
-strict maximum.
+Family nonclaims: a limit value is never the bound's meaning; a value outside the declared type refuses at construction.
+Family falsifiers: an oversize admission accepted; a bound checked only after allocation ("a bound checked after a collection grew is theater" — ch07); unknown size not charged at the strict maximum.
 
 Ratified admission-side law rows (safety-relevant classification):
 
@@ -52,16 +44,13 @@ Ratified admission-side law rows (safety-relevant classification):
 | event.overflow-posture | `ChronologyRefusal::LogicalCounterOverflow` | typed refusal — no wrap, no saturation, no clamping, prior accepted state intact | ratified · safety-relevant | artifact | none (law) | Direction bank: "Overflow does not justify inventing chronology." |
 | event.merge-refusal-roster | `ChronologyMergeRefusal` | single cause: `ProfileMismatch` | candidate (seated) | artifact | new profile identity | Archive ch04: merge totality clause is the roster — "total over validated same-profile summaries names exactly one guard"; no overflow cause exists for componentwise max. Seated as its own family, distinct from admission refusals. |
 
-Family nonclaims: chronology proves no causation, order, completeness, or
-checkpoint progress. Family falsifiers: wraparound on overflow; clamped
-future values; a merge consulting wall time; cross-profile merge passing.
+Family nonclaims: chronology proves no causation, order, completeness, or checkpoint progress.
+Family falsifiers: wraparound on overflow; clamped future values; a merge consulting wall time; cross-profile merge passing.
 
 ## Reservation and ingress (profile: `ReservationProfile`)
 
-All numeric values below are **withheld**: the reservation family was closed
-as law in the ingress ruling (2026-08-24) with every tunable left marked
-open. Binding time deployment; change consequence refusal/default change;
-consumers `reserve_ingress` and `admit_claim`.
+All numeric values below are **withheld**: the reservation family was closed as law in the ingress ruling (2026-08-24) with every tunable left marked open.
+Binding time deployment; change consequence refusal/default change; consumers `reserve_ingress` and `admit_claim`.
 
 | Row | Consumed as | Status |
 | --- | --- | --- |
@@ -88,7 +77,5 @@ Ratified ingress law rows (safety-relevant classification):
 | event.no-eviction-into-duplicate | Capacity exhaustion is a typed refusal; an unexpired reservation is never evicted into an ambiguous duplicate. | Owner-ruled 2026-08-24. |
 | event.ingress-queue-arity | Ingress queue capacity is three-dimensional — items AND bytes AND weight — charged from validated data; deceptive size reports refuse. | ch11 ingress paved road (arity ratified; values withheld). |
 
-Family nonclaims: a reservation token is no grant, no admission, no Attempt,
-no checkpoint, and no proof of truth. Family falsifiers: duplicate Reserve
-minting a second token; expiry silently converting a retry into a fresh
-intent; an unauthenticated caller receiving an unbounded durable-state mint.
+Family nonclaims: a reservation token is no grant, no admission, no Attempt, no checkpoint, and no proof of truth.
+Family falsifiers: duplicate Reserve minting a second token; expiry silently converting a retry into a fresh intent; an unauthenticated caller receiving an unbounded durable-state mint.

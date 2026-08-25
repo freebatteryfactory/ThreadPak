@@ -1,6 +1,9 @@
 # ThreadPak acceptance witness
 
-This document is the frozen acceptance contract for the ThreadPak architecture. It realizes the Acceptance section of `ARCHITECTURE.md` in full detail and derives from the rulings accepted 2026-08-24. It states what must be **proved** and what would **falsify** each proof. Nothing in this document is claimed proven; a sentence here is a demand on evidence, never a report of it.
+This document is the frozen acceptance contract for the ThreadPak architecture.
+It realizes the Acceptance section of `ARCHITECTURE.md` in full detail and derives from the rulings accepted 2026-08-24.
+It states what must be **proved** and what would **falsify** each proof.
+Nothing in this document is claimed proven; a sentence here is a demand on evidence, never a report of it.
 
 ## The acceptance theorem
 
@@ -14,13 +17,18 @@ WitnessA
 A1 ∧ A2 ∧ A3 ∧ A4 ∧ A5 ∧ A6
 ```
 
-Witness A proves the complete local machine. Witness B proves authority succession and scale-out. Both are required; neither substitutes for the other, and Witness A holding alone is never grounds to treat partitioning as "probably fine."
+Witness A proves the complete local machine.
+Witness B proves authority succession and scale-out.
+Both are required; neither substitutes for the other, and Witness A holding alone is never grounds to treat partitioning as "probably fine."
 
-Witness A is proved through ordered construction cuts A1–A6. The cuts are construction order, not product phases, release slices, or temporary architectures. Only after A6 holds does Witness A hold.
+Witness A is proved through ordered construction cuts A1–A6.
+The cuts are construction order, not product phases, release slices, or temporary architectures.
+Only after A6 holds does Witness A hold.
 
 ## The standing rule
 
-Construction order does not weaken acceptance. Each cut uses final semantic roles, and no earlier cut is presented as a complete ThreadPak product or a compatibility promise.
+Construction order does not weaken acceptance.
+Each cut uses final semantic roles, and no earlier cut is presented as a complete ThreadPak product or a compatibility promise.
 
 Accordingly, in every cut:
 
@@ -29,7 +37,9 @@ Accordingly, in every cut:
 - no generic status wrapper;
 - no API introduced with the intention of replacing it later.
 
-The freeze that precedes the cuts consists of this contract together with the owner contracts — each owner's README law, its complete `types.rs` role graph, its thin semantic operation signatures, its profile and depot algebra with the initially selected rows, its exact crossings, and its refusal families. These close in the A0 contract-closure pass, and no cut begins before its owner's closure stands. The freeze proves nothing and claims nothing green; it closes what the witnesses must prove and what the hostile denominator contains.
+The freeze that precedes the cuts consists of this contract together with the owner contracts — each owner's README law, its complete `types.rs` role graph, its thin semantic operation signatures, its profile and depot algebra with the initially selected rows, its exact crossings, and its refusal families.
+These close in the A0 contract-closure pass, and no cut begins before its owner's closure stands.
+The freeze proves nothing and claims nothing green; it closes what the witnesses must prove and what the hostile denominator contains.
 
 Where this document names a milestone, identity, or refusal, the exact public Rust spelling binds in the owning contract's type pass; the semantic role named here is the law the spelling must realize.
 
@@ -130,7 +140,9 @@ PakVM closed-value stepping
 no ambient host authority
 ```
 
-The lowering gate obeys the one-owner, two-roads law: Program owns the Semantic-to-Execution lowering law and consumes its agreement result, but the production lowerer and the independent agreement route must not share load-bearing lowering or verdict logic. `DisagreementEstablished` (an independently checked relation does not hold) and `AgreementNotEstablished` (the required independent route could not establish the relation) remain distinct outcomes. Every locally or externally produced image crosses the same agreement gate; a locally built image receives no shortcut.
+The lowering gate obeys the one-owner, two-roads law: Program owns the Semantic-to-Execution lowering law and consumes its agreement result, but the production lowerer and the independent agreement route must not share load-bearing lowering or verdict logic.
+`DisagreementEstablished` (an independently checked relation does not hold) and `AgreementNotEstablished` (the required independent route could not establish the relation) remain distinct outcomes.
+Every locally or externally produced image crosses the same agreement gate; a locally built image receives no shortcut.
 
 **Required falsifiers:**
 
@@ -166,7 +178,9 @@ typed redacted rejection evidence
 optional protected quarantine
 ```
 
-The terminal milestone is object-specific: the claim-admission receipt (`ClaimAdmissionReceipt`) discharges a ClaimFirst submission's retry duty; the domain-admission receipt — bound to the submission's idempotency identity and the accepted event's publication — discharges a DomainFirst submission's retry duty. No earlier progress stage discharges retry, and the exposure projection (terminal-only versus progressive) is interface-selected with no ThreadPak-wide default. Domain-fact admission is owned solely by event; ingress records claim custody and claim resolution and owns no second domain admission primitive.
+The terminal milestone is object-specific: the claim-admission receipt (`ClaimAdmissionReceipt`) discharges a ClaimFirst submission's retry duty; the domain-admission receipt — bound to the submission's idempotency identity and the accepted event's publication — discharges a DomainFirst submission's retry duty.
+No earlier progress stage discharges retry, and the exposure projection (terminal-only versus progressive) is interface-selected with no ThreadPak-wide default.
+Domain-fact admission is owned solely by event; ingress records claim custody and claim resolution and owns no second domain admission primitive.
 
 **Required falsifiers:**
 
@@ -268,7 +282,8 @@ replay changes logical result
 explanation cites evidence not used by evaluation
 ```
 
-The output-commits-while-checkpoint-lags falsifier must show the lawful gap: the committed output remains real, replay plus idempotency and reconciliation handle the duplication, and the checkpoint never lies that work may be skipped. The inverse — a checkpoint advanced without its required output commitments — must be unrepresentable or refused at admission.
+The output-commits-while-checkpoint-lags falsifier must show the lawful gap: the committed output remains real, replay plus idempotency and reconciliation handle the duplication, and the checkpoint never lies that work may be skipped.
+The inverse — a checkpoint advanced without its required output commitments — must be unrepresentable or refused at admission.
 
 Only after A6 does Witness A hold.
 
@@ -339,8 +354,10 @@ Acceptance evidence compares **logical traces**: accepted events, semantic resul
 
 Physical traces lawfully differ: fresh AttemptIds, wall-clock durations, scheduling order, wake timing, batch sizes, worker placement, and physical resource observations are not part of the logical trace and must not be demanded to match.
 
-An operation escapes trace invariance only by explicitly declaring schedule-sensitive semantics in its owning contract. Absent that declaration, a driver or schedule change that alters the logical trace is a falsification, not an implementation detail.
+An operation escapes trace invariance only by explicitly declaring schedule-sensitive semantics in its owning contract.
+Absent that declaration, a driver or schedule change that alters the logical trace is a falsification, not an implementation detail.
 
 ## Escalations
 
-None. Every requirement above carries or derives from rulings already accepted; no new closure requiring an explicit mint was encountered while freezing this contract.
+None.
+Every requirement above carries or derives from rulings already accepted; no new closure requiring an explicit mint was encountered while freezing this contract.

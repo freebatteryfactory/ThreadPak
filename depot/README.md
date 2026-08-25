@@ -1,31 +1,50 @@
 # depot
 
-Data-shaped truth. The depot answers one question: **which exact values, profiles, tags, vectors, and rosters were selected** — stated as data, meaning owned elsewhere.
+Data-shaped truth.
+The depot answers one question: **which exact values, profiles, tags, vectors, and rosters were selected** — stated as data, meaning owned elsewhere.
 
-Every depot entry names its consuming owner. The depot never defines meaning, never computes, and never holds behavior. Git is the depot's history; there is no append-only lifecycle machinery here.
+Every depot entry names its consuming owner.
+The depot never defines meaning, never computes, and never holds behavior.
+Git is the depot's history; there is no append-only lifecycle machinery here.
 
 ## What the depot holds
 
-- **Limit values and paved default profiles** for owner-named bound types. The types live with the operations that consume them (event, view, program, runtime); the depot holds their selected values (ARCHITECTURE.md — Bounds).
-- **Precision profiles** — which exactness, scale, rounding, and quantization a numeric operation was configured with. Numeric code performs the arithmetic; the profile states the selection.
+- **Limit values and paved default profiles** for owner-named bound types.
+  The types live with the operations that consume them (event, view, program, runtime); the depot holds their selected values (ARCHITECTURE.md — Bounds).
+- **Precision profiles** — which exactness, scale, rounding, and quantization a numeric operation was configured with.
+  Numeric code performs the arithmetic; the profile states the selection.
 - **Domain-separation tags and wire profile identifiers** — as generated projections of their owning register, never hand-maintained.
-- **Golden vectors** — what correct output is for a canonical operation. Core canon computes; the vector states the expected result.
+- **Golden vectors** — what correct output is for a canonical operation.
+  Core canon computes; the vector states the expected result.
 - **Hostile input descriptions and fault scenario descriptions** — each names the exact refusal or recovery behavior it must provoke in its owner.
-- **Refusal prose** — the human sentences keyed to typed refusals. The refusal types and their conditions live with their owners; prose adds no variant and no condition.
+- **Refusal prose** — the human sentences keyed to typed refusals.
+  The refusal types and their conditions live with their owners; prose adds no variant and no condition.
 - **Closed rosters** — the data form of a set an owner declared closed.
 
 ## What the depot never holds
 
-Algorithms. Branches. State machines. Runtime-generated evidence. Qualification workflows. Anything that computes, decides, or changes at runtime. A depot file that computes anything is in the wrong home.
+Algorithms.
+Branches.
+State machines.
+Runtime-generated evidence.
+Qualification workflows.
+Anything that computes, decides, or changes at runtime.
+A depot file that computes anything is in the wrong home.
 
 ## Rows are passed, never fetched
 
-The depot is an explicit typed fact plane, not a lookup service. The law that makes the pattern work without cycles:
+The depot is an explicit typed fact plane, not a lookup service.
+The law that makes the pattern work without cycles:
 
-- Each owner declares its **profile types** — the lawful configuration algebra — beside its other types. The depot depends on those types; it selects coordinates inside them.
-- **Owner operations never import selected depot rows.** Every thin operation receives the exact profile or row it consumes as an ordinary typed argument. Composition imports both and passes the row in.
-- No ambient registry, no global depot context, no god-profile aggregating everything for every call. A root composition value may bundle profiles for ergonomics; each operation still receives only its exact slice.
-- One browsable central depot index is a **generated projection** (Macroonz), never a second authority. The owner-local row is the source; projections regenerate and cannot drift.
+- Each owner declares its **profile types** — the lawful configuration algebra — beside its other types.
+  The depot depends on those types; it selects coordinates inside them.
+- **Owner operations never import selected depot rows.**
+  Every thin operation receives the exact profile or row it consumes as an ordinary typed argument.
+  Composition imports both and passes the row in.
+- No ambient registry, no global depot context, no god-profile aggregating everything for every call.
+  A root composition value may bundle profiles for ergonomics; each operation still receives only its exact slice.
+- One browsable central depot index is a **generated projection** (Macroonz), never a second authority.
+  The owner-local row is the source; projections regenerate and cannot drift.
 
 ## Every row is classified before it enters
 
@@ -45,11 +64,16 @@ Every row declares when its value binds and what changes when the row changes; a
 - **Binding time:** artifact-bound · generation-bound · deployment-bound · invocation-bound · test-only.
 - **Change consequence:** requalification only · new mechanism generation · new materialization generation · new image identity · new canonical/identity profile · new persisted-format version · compatible override.
 
-Alongside the classified default posture (below), each row also records: source (exact provenance), authority class, owning family, semantic role, current status (ratified / candidate / withheld / contradiction), consuming operations, nonclaims, and the falsifier that would catch its misuse. Contradictory recovered values are preserved as separate rows — never averaged.
+Alongside the classified default posture (below), each row also records: source (exact provenance), authority class, owning family, semantic role, current status (ratified / candidate / withheld / contradiction), consuming operations, nonclaims, and the falsifier that would catch its misuse.
+Contradictory recovered values are preserved as separate rows — never averaged.
 
 ## Law, configuration, mechanism, release
 
-ThreadPak law defines each complete lawful algebra. An application or deployment selects a coordinate inside that algebra through a depot profile. A qualified mechanism realizes the selection. A release row promises only what evidence supports. The depot records selections; it never invents an axis, and a profile can never widen the algebra its owner declared.
+ThreadPak law defines each complete lawful algebra.
+An application or deployment selects a coordinate inside that algebra through a depot profile.
+A qualified mechanism realizes the selection.
+A release row promises only what evidence supports.
+The depot records selections; it never invents an axis, and a profile can never widen the algebra its owner declared.
 
 ## Defaults are classified
 
@@ -59,7 +83,8 @@ Every default profile carries exactly one classification, recorded with the prof
 - **symmetric** — equally safe alternatives; no default row exists, the interface selects; the depot may still hold the named selectable profiles;
 - **safety-relevant** — the default is the strict or refusing posture.
 
-A default row without a classification is invalid. The classification is carried from its owner's ruling; the depot never assigns it.
+A default row without a classification is invalid.
+The classification is carried from its owner's ruling; the depot never assigns it.
 
 ## Crossings
 
@@ -84,4 +109,5 @@ Each of these must be refused or made impossible, and each has a description row
 4. A depot file that computes anything.
 5. A hand-maintained mirror of an owner's roster.
 
-Concrete depot files arrive with their consuming owners. No file exists here ahead of the owner that reads it.
+Concrete depot files arrive with their consuming owners.
+No file exists here ahead of the owner that reads it.

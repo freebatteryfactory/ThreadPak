@@ -1,22 +1,12 @@
 # depot — core rows (identity, canon, shared substrates)
 
-Selected facts consumed by the core owner's profile algebra (`core/types.rs`
-`IdentityProfile`, `CanonProfile`, `DomainTag`, `Budget`). Rows are
-selections-as-data consumed through explicit typed profile arguments — a row
-swap changes behavior with zero code edits, and no operation ever fetches a
-row (`depot/README.md`, "Rows are passed, never fetched").
+Selected facts consumed by the core owner's profile algebra (`core/types.rs` `IdentityProfile`, `CanonProfile`, `DomainTag`, `Budget`).
+Rows are selections-as-data consumed through explicit typed profile arguments — a row swap changes behavior with zero code edits, and no operation ever fetches a row (`depot/README.md`, "Rows are passed, never fetched").
 
-Status is per row: **ratified** (the canon-packet mint, 2026-08-24),
-**candidate** (recovered, awaiting an owner act), **qualification**
-(evidence-selected mechanism — selection is evidence, never taste),
-**withheld** (decision recorded as unmade — the depot never invents the
-selection). Contradictory recovered values are preserved as separate rows,
-never averaged.
+Status is per row: **ratified** (the canon-packet mint, 2026-08-24), **candidate** (recovered, awaiting an owner act), **qualification** (evidence-selected mechanism — selection is evidence, never taste), **withheld** (decision recorded as unmade — the depot never invents the selection).
+Contradictory recovered values are preserved as separate rows, never averaged.
 
-Authority classes: `owner-ruled` (the repository owner's word), `recovered`
-(archived selection under the seed ruling), `evidence` (matches an
-already-committed declaration or a live mechanism fact), `withheld`
-(decision recorded as unmade).
+Authority classes: `owner-ruled` (the repository owner's word), `recovered` (archived selection under the seed ruling), `evidence` (matches an already-committed declaration or a live mechanism fact), `withheld` (decision recorded as unmade).
 
 ## Identity and canon selections
 
@@ -52,12 +42,9 @@ already-committed declaration or a live mechanism fact), `withheld`
 
 ## Refusal authoring shapes — recovered roster, closed from the banked census
 
-ThreadPak authoring law: refusals are ThreadPak's product. Generic
-generation machinery (Macroonz) **consumes** this classification to generate
-constructors, diagnostics, inspection, and refusal fixtures — it never owns
-it, and no public runtime shape value ever flows through the machine. The
-census counts below describe the archived population and are carried as
-provenance only, never as claims about this repository.
+ThreadPak authoring law: refusals are ThreadPak's product.
+Generic generation machinery (Macroonz) **consumes** this classification to generate constructors, diagnostics, inspection, and refusal fixtures — it never owns it, and no public runtime shape value ever flows through the machine.
+The census counts below describe the archived population and are carried as provenance only, never as claims about this repository.
 
 | Row | Value | Status | Source |
 |---|---|---|---|
@@ -65,8 +52,7 @@ provenance only, never as claims about this repository.
 | `refusal-shape-issue-collection` | `IssueCollection` — a bounded, nonempty, canonical collection of independently established issues, carrying its completion or early-stop posture; no invented primary issue; realized as a one-field struct | recovered roster member | banked census (27 families, all one-field structs) |
 | `refusal-shape-inseparable-pair` | `InseparablePair` — two facts jointly constituting one refusal, neither an optional secondary cause; realized as a two-field struct | recovered roster member | banked census (1 family: `LineageRefusal`) |
 
-The shape ↔ Rust-kind correspondence was total in the census — nothing in
-the archived population contradicted it.
+The shape ↔ Rust-kind correspondence was total in the census — nothing in the archived population contradicted it.
 
 ## Shared substrates
 

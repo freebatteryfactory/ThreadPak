@@ -1,21 +1,15 @@
 # depot — runtime rows
 
-Selected facts consumed by the runtime owner (`runtime/types.rs`,
-`runtime/ops.rs`). Data only; meaning lives in `runtime/README.md`. Every row
-follows `depot/README.md`: passed as an explicit argument, never fetched.
+Selected facts consumed by the runtime owner (`runtime/types.rs`, `runtime/ops.rs`).
+Data only; meaning lives in `runtime/README.md`.
+Every row follows `depot/README.md`: passed as an explicit argument, never fetched.
 
-Status vocabulary: **ratified** (owner law, seated), **candidate** (recovered
-with rationale, awaiting ratification), **withheld** (the selection is
-deliberately unmade — the depot never invents it), **contradiction**
-(competing recovered values preserved as separate rows; the owner map
-decides, never averaging).
+Status vocabulary: **ratified** (owner law, seated), **candidate** (recovered with rationale, awaiting ratification), **withheld** (the selection is deliberately unmade — the depot never invents it), **contradiction** (competing recovered values preserved as separate rows; the owner map decides, never averaging).
 
 ## Limits and budgets
 
-All numeric values below are **withheld** unless a value is shown: the old
-corpus named the bound families and refused to fabricate numbers, and this
-depot does the same. Binding time: deployment unless noted; change
-consequence: refusal/default change under requalification.
+All numeric values below are **withheld** unless a value is shown: the old corpus named the bound families and refused to fabricate numbers, and this depot does the same.
+Binding time: deployment unless noted; change consequence: refusal/default change under requalification.
 
 | Row | Consuming role | Value | Status | Authority | Notes (nonclaim / falsifier) |
 | --- | --- | --- | --- | --- | --- |
@@ -86,6 +80,4 @@ Artifact-bound; changing one is a new persisted-format version.
 | runtime.cancellation-fact-roster.b | 〃 | 7, with shutdown carrying 6 profile-selected meanings | bank ~9024 |
 
 Capacity numbers inside every backpressure row are withheld in every source.
-The `TurnId` preimage rows are artifact-bound: ratifying one is a new
-identity-family decision, and the preimage roster then lives here, cited by
-the identity profile — never restated in code comments.
+The `TurnId` preimage rows are artifact-bound: ratifying one is a new identity-family decision, and the preimage roster then lives here, cited by the identity profile — never restated in code comments.
