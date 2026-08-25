@@ -111,7 +111,7 @@ The honesty laws every semantic value surface obeys:
 A schema is a semantic commitment, distinct from the codec that encodes it, the layout that stores it, and the exact occurrence bytes of one artifact.
 Rust struct layout is not a wire format, and serde-style attributes are not semantic identity.
 
-Law: bounded validation before allocation; duplicate and ambiguous representations refuse; unknown-field policy is explicit per schema, never silent (`UnknownMemberPolicy`, four closed postures — `OpaquePreserved` is monotone extendability, never `Pending`); a removed field or variant identity (`FieldId`, `VariantId`) is never reused; schema identity and version are declared facts derived from the schema's `SchemaCommitment`, and compatibility is stated per horizon (API, persisted history, schema/codec, image, checkpoint, protocol, receipt) by the owner making the claim.
+Law: bounded validation before allocation; duplicate and ambiguous representations refuse; unknown-member policy is explicit per schema, never silent (`UnknownMemberPolicy`, four closed postures — `OpaquePreserved` is monotone extendability, never `Pending`); a removed field or variant identity (`FieldId`, `VariantId`) is never reused; schema identity and version are declared facts derived from the schema's `SchemaCommitment`, and compatibility is stated per horizon (API, persisted history, schema/codec, image, checkpoint, protocol, receipt) by the owner making the claim.
 Validation is one operation (`ops.rs check_schema`) returning a `SchemaAdmission` witness or a typed refusal — the witness proves the check ran, never domain truth.
 
 ## 6. Number
@@ -137,7 +137,7 @@ The one shared charge mechanic is declared here (`Budget<D>` + `ops.rs charge` +
 Concrete bound types live with the operations that consume them; numeric values and paved profiles live in the depot; this family owns the classes and the mechanics only.
 
 The register's second level is declared: `BoundDimension` — the row shape binding each registered dimension's owner, class, unit, charge law, binding time, default classification (D-DEFAULT-1), and change consequence.
-The numeric value is the depot row the shape provenances.
+The numeric value comes from the depot row referenced by the shape.
 
 The four axes never share a type: value (what is it), bound (how much may happen), authority (what may this actor do), evidence (why believe the result).
 
@@ -205,7 +205,7 @@ Each must be unrepresentable or refuse with a typed result:
 5. A budget acquiring a widening method, `Clone`, or `Copy`; a limit's class inferred instead of declared.
 6. Unchecked arithmetic; silent rounding; a sentinel number standing for an exceptional value.
 7. A second lawful byte representation for one value role; a hand-edited register projection.
-8. An unknown field silently accepted, or a removed field identity reused.
+8. An unknown member silently accepted, or a removed field identity reused.
 9. Any universal status, receipt, grant, budget, or envelope appearing in this home.
 10. `core::authority` resurrected without two proven-identical grant families.
 

@@ -125,7 +125,7 @@ pub type MintDomainAdmissionReceiptFn = fn(
 
 /// Operation `recover_prefix` — pure recovery classification over bounded scan evidence: establish the exact recovered boundary and classify everything encountered.
 ///
-/// Committed-boundary-bounded, never caller-acknowledgement-bounded.
+/// Committed-boundary-bounded, never caller-acknowledgment-bounded.
 /// Within-boundary unreadable material classifies refuse-and-hold — a classification, not a refusal; committed-but-unacknowledged material is never discarded.
 /// Refuses: `ScanBudgetExhausted` (no partial boundary is reported as recovered).
 /// Bounds: `RecoveryScanBudget`.

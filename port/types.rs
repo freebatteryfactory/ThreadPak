@@ -28,7 +28,7 @@ pub struct PortFamilyId {
 ///
 /// Meaningless without its `PortFamilyId`; two families may reuse ordinals without relation.
 pub struct PortOperationId {
-    /* registered id; width per depot/port.md row port.registered-id-width — that row preserves a recovered contradiction (u16 register law vs the previously declared u32) */
+    /* registered id; the canonical wire discriminant cites depot/core.md row registered-id-width, and the Rust representation stays an opaque newtype */
 }
 
 /// Identifies one physical request instance.
@@ -104,7 +104,7 @@ pub struct PortOperation {
 ///
 /// A role is a semantic commitment, not a byte layout; equal bytes under different roles never substitute.
 pub struct PortValueRole {
-    /* registered id; width per depot/port.md row port.registered-id-width */
+    /* registered id; the canonical wire discriminant cites depot/core.md row registered-id-width, and the Rust representation stays an opaque newtype */
 }
 
 /// Binds one declared value role to the schema commitment that gives its bytes meaning.

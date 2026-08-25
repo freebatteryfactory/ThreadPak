@@ -118,12 +118,16 @@ Each absence is the law working, not a gap.
 
 ## Escalations
 
-No fork is open in this contract.
+No fork is open in this contract; the entries below are recorded rulings and owner-derived machining.
 
-1. **Observation reading shape — RULED by the repository owner, 2026-08-24.** The scalar-versus-interval framing was a false binary; the ruling composes both recovered receipts.
-   A raw observation carries the reading **plus** the uncertainty the source reported; admission under the `ClockSourceProfile` produces the admitted enclosure (earliest/latest bounds), a point value being the degenerate enclosure only under an explicit zero-uncertainty claim.
-   Unstated uncertainty resolves by the profile's posture — widened to the declared maximum, or refused — never silently zero.
-   Chronology admission and the runtime deadline rebase consume only admitted enclosures, never raw observations.
-   (`depot/port.md`, row port.wall-reading-representation records the resolution.)
+**Observation reading shape — RULED by the repository owner, 2026-08-24.** The scalar-versus-interval framing was a false binary; the ruling composes both recovered receipts.
+A raw observation carries the reading **plus** the uncertainty the source reported; admission under the `ClockSourceProfile` produces the admitted enclosure (earliest/latest bounds), a point value being the degenerate enclosure only under an explicit zero-uncertainty claim.
+Unstated uncertainty resolves by the profile's posture — widened to the declared maximum, or refused — never silently zero.
+Chronology admission and the runtime deadline rebase consume only admitted enclosures, never raw observations.
+(`depot/port.md`, row port.wall-reading-representation records the resolution.)
 
-Recorded seams that are owner-derived machining, not forks: `AbsoluteDeadlineId` is a runtime-owned identity this contract references and the runtime deadline family must declare (cross-seam closure item); the registered-id width contradiction is disposed (2026-08-24, different questions compose: u16 is the per-closed-wire-registry width, the prior u32 was an in-memory representation answer; Rust interiors stay opaque newtypes — `depot/core.md`); the wider recovery-declaration rosters preserved in `depot/port.md` widen `RecoveryContract` only when the runtime effect-admission pass consumes them; an entropy observation port is recovered law ("generated-opaque minting draws admitted entropy and time only through ports") and arrives with its consumer, the identity-minting pass.
+**Owner-derived seams — machining, not forks.**
+`AbsoluteDeadlineId` is a runtime-owned identity this contract references and the runtime deadline family must declare (cross-seam closure item).
+The registered-id width contradiction is disposed (2026-08-24, different questions compose: u16 is the per-closed-wire-registry width, the prior u32 was an in-memory representation answer; Rust interiors stay opaque newtypes — `depot/core.md`).
+The wider recovery-declaration rosters preserved in `depot/port.md` widen `RecoveryContract` only when the runtime effect-admission pass consumes them.
+An entropy observation port is recovered law ("generated-opaque minting draws admitted entropy and time only through ports") and arrives with its consumer, the identity-minting pass.

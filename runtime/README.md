@@ -178,7 +178,7 @@ Nothing here publishes domain history: these records reference domain Cuts and n
 
 ## Reconciliation
 
-Reconciliation is a pure bounded conclusion over append-only evidence: the effect's recovery contract, the durable EffectIntent, every known AttemptReport, acknowledgements, outcome-query evidence, and current policy, yielding a current lawful conclusion and next action.
+Reconciliation is a pure bounded conclusion over append-only evidence: the effect's recovery contract, the durable EffectIntent, every known AttemptReport, acknowledgments, outcome-query evidence, and current policy, yielding a current lawful conclusion and next action.
 Whether reconciliation is owed and how it concluded are two facts that never share one enum: `ReconciliationLifecycle` answers *whether* (not required, outstanding, complete), and `ReconciliationDisposition` — carried only inside completion — answers *how*, so a disposition-without-completion is unrepresentable.
 It never rewrites an earlier Attempt, observation, or external event; later evidence supersedes the conclusion while the historical record stands.
 Lawful next actions include observing, waiting, one fresh lawful Attempt, a separately admitted compensating effect, an authorized human decision, accepting a durable partial outcome where the contract permits, or terminating unresolved.

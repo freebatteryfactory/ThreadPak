@@ -185,7 +185,7 @@ Domain-fact admission is owned solely by event; ingress records claim custody an
 **Required falsifiers:**
 
 ```text
-lost acknowledgement at every exposed stage
+lost acknowledgment at every exposed stage
 lost reservation-token response
 duplicate Reserve
 same nonce with conflicting intent

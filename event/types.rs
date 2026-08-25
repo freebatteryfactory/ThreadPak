@@ -688,7 +688,7 @@ pub struct AppendReceipt {
 
 /// The lawful classifications of material found during accepted-prefix recovery.
 ///
-/// Recovery is committed-boundary-bounded, never caller-acknowledgement-bounded.
+/// Recovery is committed-boundary-bounded, never caller-acknowledgment-bounded.
 pub enum RecoveryClassification {
     /// Inside the committed boundary and unreadable: refuse-and-hold.
     ///

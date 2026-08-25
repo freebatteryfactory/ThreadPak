@@ -370,7 +370,7 @@ pub enum ReconciliationDisposition {
 /// The durable relationship around one admitted EffectIntent that has no terminal outcome knowledge: the intent, its known Attempts, the append-only evidence so far, and the applicable recovery posture.
 pub struct OutstandingEffect {
     intent: EffectIntentId,
-    /* bounded known-Attempt roster, append-only evidence references (sealed AttemptReports, acknowledgements, outcome-query evidence), and the recovery-contract binding */
+    /* bounded known-Attempt roster, append-only evidence references (sealed AttemptReports, acknowledgments, outcome-query evidence), and the recovery-contract binding */
 }
 
 /// The durable fact that outcome knowledge for one intent remains unresolved.

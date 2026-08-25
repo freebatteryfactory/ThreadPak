@@ -180,7 +180,7 @@ The storage contract is behavioral and mechanism-free.
 Its operation roster is closed (`StorageOperation`): append against an ExpectedCut; exact accepted-prefix read; freeze of an exact Cut; accepted-prefix recovery after crash; idempotent reopen; and compaction as physical succession.
 The family's contract declaration uses the port owner's grammar and is itself data, projected as a depot row.
 
-**Recovery law.** Recovery is committed-boundary-bounded, never caller-acknowledgement-bounded.
+**Recovery law.** Recovery is committed-boundary-bounded, never caller-acknowledgment-bounded.
 Material beyond the last valid CommitPoint is lawfully discarded with a typed recovery receipt.
 Material within the committed boundary that cannot be read intact is refuse-and-hold — committed data may never be silently discarded, and committed-but-unacknowledged data may never be discarded at all.
 
@@ -338,7 +338,7 @@ The falsifiers this home must refuse, each with a typed refusal a test can deman
 6. Causal edge to a non-accepted cause; causal cycle; correlation or delivery order presented as causation; UnresolvedCausalClaim counted as DomainCausation; fan-in beyond the inline bound not refusing.
 7. Split children that overlap, gap, or fail to cover the parent; routing published before child activation; inherited events re-minted; parent and child cuts interchanged without succession evidence.
 8. Removal without the full ladder; removal read back as historical absence; discard of committed material during recovery; discard of committed-but-unacknowledged material ever.
-9. Lost acknowledgement at every exposed ingress rung; an earlier milestone discharging retry; a generic admitted/accepted result.
+9. Lost acknowledgment at every exposed ingress rung; an earlier milestone discharging retry; a generic admitted/accepted result.
 10. Duplicate Reserve minting a second token; same nonce with conflicting intent overwriting; eviction of an unexpired reservation followed by an ambiguous duplicate; expiry silently converting a retry into a fresh intent.
 11. Crash after claim admission losing claim custody; a progress witness claiming crash-recoverability the bytes do not have.
 12. Raw rejected content escaping custody — in a refusal value, an unkeyed digest, or a direct re-admission.

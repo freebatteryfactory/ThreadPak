@@ -59,7 +59,7 @@ Transport notifications are awareness — wake, notify, live update — and are 
 ## What owns fact
 
 Accepted event history owns domain fact.
-Role-specific runtime records own only the exact facts they establish — an `AttemptReport` owns one physical effort's observations; an accepted checkpoint advance owns one consumer's right to skip completed logical work; a durably admitted `EffectIntent` owns one logical external commitment.
+Role-specific runtime records own only the exact facts they establish — an `AttemptReport` owns one physical effort's observations; an accepted checkpoint-advance record owns one consumer's right to skip completed logical work; a durably admitted `EffectIntent` owns one logical external commitment.
 A program's `EffectProposal` is inert data; only REQUEST or PEND admission strengthens it into an `EffectIntent`, exactly as only event admission strengthens an `EventProposal` into an `AcceptedEvent`.
 Views, indexes, DataBlocks, caches, route plans, and physical plans are derived and rebuildable.
 When a maintained result disagrees with accepted history, the maintained result is stale, corrupt, incomplete, or wrong — never the history.

@@ -6,7 +6,7 @@
 //! Depot law applies to every signature (`depot/README.md`, "Rows are passed, never fetched"): profiles and budgets arrive as explicit arguments; no operation reads an ambient registry, clock, or global context.
 //! Affine budgets are consumed by value and returned smaller.
 //!
-//! Foreign roles by owner: `EffectProposal`, `ImmediateResult`, `DecisionRefusal` (program); `ValidatedResponse`, `MonotonicObservation` (port); `AcceptedCheckpointAdvance` consumers see only this owner's types.
+//! Foreign roles by owner: `EffectProposal`, `ImmediateResult`, `DecisionRefusal` (program); `ValidatedResponse`, `MonotonicObservation` (port).
 
 // ---------------------------------------------------------------------------
 // Logical runtime

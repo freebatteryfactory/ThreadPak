@@ -11,7 +11,7 @@ Machine-wide canon selections (digest family, byte order, domain-tag grammar) ar
 | port.family-id-width | `PortFamilyId` interior | 16 fresh opaque bytes | candidate | old canonical-bytes chapter, Class-D fresh law ("fresh rows carry 16 entropy bytes with no meaning in the bytes") |
 | port.request-id-width | `PortRequestId`, `CarrierRequestId`, `QuarantineDispositionRef` interiors | 16 fresh opaque bytes | candidate | same Class-D law |
 | port.clock-domain-id-width | `ClockDomainId` interior | 16 fresh opaque bytes; one lineage = one boot of one clock kind | candidate | old temporal algebra T1 ("a fresh occurrence identity, not content") |
-| port.registered-id-width | `PortOperationId`, `PortValueRole` interiors | **contradiction preserved**: register law says u16 ("registered ids u16 from the domain-tag register"); the prior draft declared u32 | contradiction — owner map decides at the identity-profile pass | old canonical-bytes chapter conventions vs prior `port/types.rs` |
+| port.registered-id-width | `PortOperationId`, `PortValueRole` interiors | cites the core canon row `registered-id-width`; this owner selects no width of its own, and the Rust interiors stay opaque newtypes | mapped to core | `depot/core.md` row `registered-id-width` (ratified as scoped, 2026-08-24: u16 per closed wire registry; the earlier u32 answered an in-memory representation question, so the two compose) |
 | port.version-scalar-width | `PortContractVersion`, `ClockProfileVersion`, `PortGrantGeneration`, `QuarantineGrantGeneration` interiors | Class-C scoped u64 scalar, scope in canonical bytes, no cross-scope comparison | candidate | old identity matrix ("version lines are Class C"); Class-C u64 convention |
 
 Consumers: every identity constructor at the guard pass.
