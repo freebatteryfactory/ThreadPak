@@ -3,7 +3,7 @@
 This document is the owner contract for the `core` home.
 It states product law: what ThreadPak defines.
 No sentence here claims current implementation support.
-Root law: `ARCHITECTURE.md`.
+Root law: `../README.md`.
 
 The home's question:
 
@@ -15,7 +15,7 @@ Even a concept that passes the test enters only with a concrete consumer — cor
 
 ## Co-seated semantic families
 
-Per `ARCHITECTURE.md` §Owners are not directories, one dependency home may seat several owner families.
+Per `../README.md` §Owners are not directories, one dependency home may seat several owner families.
 Core seats eight, each separately named, none answering another's question:
 
 | Family | Unique question |
@@ -67,7 +67,7 @@ There is **no conversion in either direction** between `Truth` and `Decision`.
 `Defer` is not `Pending` and is not a refusal.
 
 Only knowledge axes say "not yet," and each is owner-specific: `Truth::Pending` here, `OutcomeKnowledge` at runtime, commit knowledge with its owner.
-No other enum grows a pending-shaped variant, and no universal status exists (`ARCHITECTURE.md` rail 13; the not-yet non-collapse table is the runtime contract's).
+No other enum grows a pending-shaped variant, and no universal status exists (`../README.md` rail 13; the not-yet non-collapse table is the runtime contract's).
 
 ## 3. Identity
 
@@ -157,7 +157,7 @@ If a core family ever needs a limit, it declares it like any other owner.
 
 ## Crossings
 
-Per `ARCHITECTURE.md` §No orphan by distribution — fact, owner, establishing operation, carrier, substitution refusal, chronology:
+Per `../README.md` §No orphan by distribution — fact, owner, establishing operation, carrier, substitution refusal, chronology:
 
 1. **Defer's demand payload.**
    Fact: what evidence could close a decision.
@@ -172,7 +172,7 @@ Per `ARCHITECTURE.md` §No orphan by distribution — fact, owner, establishing 
    Operation: each owner's declarations.
    Carrier: this family supplies only `Truth::Pending` and `Defer`.
    Refusal: no generic pending status exists.
-   Chronology: carries `ARCHITECTURE.md` rail 13.
+   Chronology: carries `../README.md` rail 13.
 3. **Grants.**
    Fact: role-specific authority.
    Owner: event, view, port, runtime — never core.

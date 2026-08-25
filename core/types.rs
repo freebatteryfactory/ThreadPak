@@ -75,7 +75,7 @@ pub enum BoundClass {
 
 /// How consuming a bound behaves.
 ///
-/// Affine only where duplicating the value would fabricate capacity; a plain limit is copyable and needs no linear ceremony (`ARCHITECTURE.md` §Bounds).
+/// Affine only where duplicating the value would fabricate capacity; a plain limit is copyable and needs no linear ceremony (`../README.md` §Bounds).
 pub enum ChargeLaw {
     /// Charging consumes the value and returns a smaller successor; no widening method exists anywhere.
     Affine,

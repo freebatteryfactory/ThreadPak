@@ -73,7 +73,7 @@ Per the no-orphan rule (fact / owner / operation / carrier / refusal / chronolog
 | Live deadline | runtime | deadline rebase from durable policy | supplies the admitted `MonotonicObservation` enclosure; carries the absolute deadline | no layer resets or extends; raw is never deadline evidence | carries the deadline-never-resets law |
 | Quarantine custody + disposition | event ingress | reject / plan quarantine | physically stores under the four guardrails | stored bytes never re-admitted directly | carries the rejected-content custody ruling; guardrails reaffirmed 2026-08-24 |
 | Flow-control credit | runtime delivery | grant / consume / replenish / overrun | carried by wrappers | credit is never durable progress | carries the Serve-diaspora seating (2026-08-24) |
-| Durable publication | event store contract | storage-family operations | adapter realizes the family | adapter success proves only the exact claim it establishes | carries what-owns-fact (ARCHITECTURE.md) |
+| Durable publication | event store contract | storage-family operations | adapter realizes the family | adapter success proves only the exact claim it establishes | carries what-owns-fact (../README.md) |
 | Ingress witnesses (received / validated / admitted) | event ingress | ingress ladder operations | wrappers carry the stage witness | no earlier stage discharges retry | carries the acknowledgment-ladder ruling (2026-08-24) |
 | Live grant handle | Bvisor | grant validation + installation | `PortGrant` is the admitted authority record | a serialized grant is data, not custody | derives from role-specific-authority (rails §13) |
 

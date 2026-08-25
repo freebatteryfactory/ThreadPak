@@ -10,7 +10,7 @@ Git is the depot's history; there is no append-only lifecycle machinery here.
 ## What the depot holds
 
 - **Limit values and paved default profiles** for owner-named bound types.
-  The types live with the operations that consume them (event, view, program, runtime); the depot holds their selected values (ARCHITECTURE.md — Bounds).
+  The types live with the operations that consume them (event, view, program, runtime); the depot holds their selected values (../README.md — Bounds).
 - **Precision profiles** — which exactness, scale, rounding, and quantization a numeric operation was configured with.
   Numeric code performs the arithmetic; the profile states the selection.
 - **Domain-separation tags and wire profile identifiers** — as generated projections of their owning register, never hand-maintained.
@@ -88,16 +88,16 @@ The classification is carried from its owner's ruling; the depot never assigns i
 
 ## Crossings
 
-Stated per the no-orphan rule (ARCHITECTURE.md — No orphan by distribution): fact, owner, establishing operation, depot projection, substitution refusal, chronology.
+Stated per the no-orphan rule (../README.md — No orphan by distribution): fact, owner, establishing operation, depot projection, substitution refusal, chronology.
 
 | Fact | Owner | Establishing operation | Depot projection | Substitution refusal | Chronology |
 |---|---|---|---|---|---|
-| A bound's selected value | The bound type's owner (event, view, program, runtime) | The consuming operation's validated construction | Limit value / default profile row | A value outside the owner's declared type refuses at construction; the value never becomes the bound's meaning | Carries ARCHITECTURE.md — Bounds |
-| Expected output of a canonical operation | Core canonical-encoding owner | The canonical operation itself | Golden vector | A vector never substitutes for the operation's result; disagreement is evidence against the implementation, and a vector changes only by its owner's act | Carries ARCHITECTURE.md — rail 12 |
+| A bound's selected value | The bound type's owner (event, view, program, runtime) | The consuming operation's validated construction | Limit value / default profile row | A value outside the owner's declared type refuses at construction; the value never becomes the bound's meaning | Carries ../README.md — Bounds |
+| Expected output of a canonical operation | Core canonical-encoding owner | The canonical operation itself | Golden vector | A vector never substitutes for the operation's result; disagreement is evidence against the implementation, and a vector changes only by its owner's act | Carries ../README.md — rail 12 |
 | Domain-separation tag / wire profile identifier | The identity register's owner | The register's declaration | Generated tag and identifier tables | A hand-edited projection is invalid; projections regenerate from the register so they cannot drift | Carries the settled register-projection ruling |
-| Hostile input / fault scenario | The owner whose refusal it targets | That owner's refusal contract | Description row consumed by the independent Macroonz harness | A hostile row asserts no law; it names the refusal it must provoke | Carries ARCHITECTURE.md — No orphan by distribution |
-| Closed roster membership | The declaring owner | The owner's closed declaration | Roster data | A roster edit without its declaring owner's declaration is invalid; no mirror of an owner's roster exists | Carries ARCHITECTURE.md — Owners are not directories |
-| Refusal prose | The refusal family's owner | Typed refusal construction | Prose keyed by refusal identity | Prose adds no variant, condition, or meaning | Carries ARCHITECTURE.md — rail 13 |
+| Hostile input / fault scenario | The owner whose refusal it targets | That owner's refusal contract | Description row consumed by the independent Macroonz harness | A hostile row asserts no law; it names the refusal it must provoke | Carries ../README.md — No orphan by distribution |
+| Closed roster membership | The declaring owner | The owner's closed declaration | Roster data | A roster edit without its declaring owner's declaration is invalid; no mirror of an owner's roster exists | Carries ../README.md — Owners are not directories |
+| Refusal prose | The refusal family's owner | Typed refusal construction | Prose keyed by refusal identity | Prose adds no variant, condition, or meaning | Carries ../README.md — rail 13 |
 
 ## Hostile denominator
 

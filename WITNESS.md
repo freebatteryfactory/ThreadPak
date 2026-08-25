@@ -1,7 +1,7 @@
 # ThreadPak acceptance witness
 
 This document is the frozen acceptance contract for the ThreadPak architecture.
-It realizes the Acceptance section of `ARCHITECTURE.md` in full detail and derives from the rulings accepted 2026-08-24.
+It realizes the Acceptance section of `README.md` in full detail and derives from the rulings accepted 2026-08-24.
 It states what must be **proved** and what would **falsify** each proof.
 Nothing in this document is claimed proven; a sentence here is a demand on evidence, never a report of it.
 

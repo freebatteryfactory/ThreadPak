@@ -3,19 +3,19 @@
 This document is the owner contract for the `event` home.
 It states product law: what ThreadPak defines.
 No sentence here claims current implementation support.
-It stays consistent with `ARCHITECTURE.md`; where the two could ever disagree, that is a defect to fix, never a fork to interpret.
+It stays consistent with `../README.md`; where the two could ever disagree, that is a defect to fix, never a fork to interpret.
 
 The home's question:
 
 > **What fact became accepted, at which semantic address, under which authority, in what exact authority-local order, and through which durable cut?**
 
 This home is the center of the machine.
-Accepted event history owns domain fact (ARCHITECTURE.md §What owns fact).
+Accepted event history owns domain fact (../README.md §What owns fact).
 Everything else in ThreadPak either feeds this home through admission, derives from it at exact Cuts, or is a role-specific durable record of another owner — runtime checkpoint advances, admitted EffectIntents, Attempt evidence — which owns exactly its own fact and references this home's Cuts without inhabiting them.
 
 ## Co-seated semantic owners
 
-Per ARCHITECTURE.md §Owners are not directories, one dependency home may seat several semantic owners.
+Per ../README.md §Owners are not directories, one dependency home may seat several semantic owners.
 This home seats seven, each with its own question, types, operations, and refusals:
 
 | Owner | Unique question |
@@ -51,7 +51,7 @@ Historical facts stay bound to the frame under which they were admitted; a newer
 Live write-authority regions for one authority family and epoch are disjoint — no overlap, ever.
 One accepted event may participate in several typed views, memberships, and relations without duplication or re-admission.
 
-*Chronology: carries the settled coordinate rulings (owner-endorsed direction, carried); overlap and three-layer law derive from ARCHITECTURE.md §The rails (1, 3, 10).*
+*Chronology: carries the settled coordinate rulings (owner-endorsed direction, carried); overlap and three-layer law derive from ../README.md §The rails (1, 3, 10).*
 
 ## 2. Accepted history
 
@@ -59,7 +59,7 @@ One accepted event may participate in several typed views, memberships, and rela
 `AcceptedEvent` is an immutable fact admitted into history.
 `EventId` identifies the accepted fact.
 `EventCommitment` is the canonical-byte commitment the identity derives from.
-None of Command, Observation, EffectIntent, Receipt, or View is an event (ARCHITECTURE.md §What owns fact).
+None of Command, Observation, EffectIntent, Receipt, or View is an event (../README.md §What owns fact).
 
 **Admission.** Event admission takes an `EventProposal`, the caller's `ExpectedCut`, an `AppendGrant`, and the current region epoch.
 A stale expected Cut refuses before publication — an adapter may not silently rebase and retry against a newer prefix, because that changes the operation's meaning.
@@ -71,7 +71,7 @@ Commit knowledge rides its own knowledge axis, never a field on the event — an
 **Order.** `AuthoritySequence` is the exact accepted order under one writer authority.
 It is scope-bound: the scope lives in the value's own canonical bytes, there is no derived ordering across scopes, and comparison is lawful only within one proven scope.
 Any change to the ordering interpretation that would make old and new values incomparable mints a new authority generation.
-There is no global sequence anywhere (ARCHITECTURE.md §The rails, 10).
+There is no global sequence anywhere (../README.md §The rails, 10).
 
 **Single writer, correctly read.** One writer per region per epoch means one active semantic authority may extend the accepted order — not one thread, task, process, or machine.
 Preparation, validation, reads, and derived work may all proceed concurrently; the one serialized boundary is accepted publication.
@@ -83,7 +83,7 @@ A `FederationCut` maps every source to one exact local CommitPoint.
 Compatible cuts compare as equal, advancing, preceding, concurrent, or incompatible.
 A componentwise join is a knowledge summary; it never proves the component cuts coexisted, formed a snapshot, or committed atomically.
 
-*Chronology: carries ARCHITECTURE.md §The rails (1, 3, 10) and the settled accepted-history rulings; the FederationCut nonclaim carries the owner-ruled cut-vector law.*
+*Chronology: carries ../README.md §The rails (1, 3, 10) and the settled accepted-history rulings; the FederationCut nonclaim carries the owner-ruled cut-vector law.*
 
 ## 3. Chronology
 
@@ -113,11 +113,11 @@ Algebraic claims (associativity, commutativity, idempotence) are made per profil
 **Nonclaims.** Chronology proves no causation, no durable order, no completeness, and no checkpoint progress.
 Exact component widths, skew ceilings, persistence, and the compatibility profile close with the chronology profile (owner-derived contract; open machining, not a fork); the recovered width candidates and their preserved contradiction live in `depot/event.md`.
 
-*Chronology: carries the settled chronology rulings and the clock-role table (owner-endorsed direction, carried); the pure-advance shape derives from ARCHITECTURE.md §The rails (8).*
+*Chronology: carries the settled chronology rulings and the clock-role table (owner-endorsed direction, carried); the pure-advance shape derives from ../README.md §The rails (8).*
 
 ## 4. Causation
 
-Three separate relationships, never merged (ARCHITECTURE.md §Composition and causation):
+Three separate relationships, never merged (../README.md §Composition and causation):
 
 ```text
 ImmediateHistoryPredecessor   append integrity and local lineage
@@ -253,7 +253,7 @@ Authority is minted, never authored — a caller cannot construct authority by w
 ## Receipts
 
 `AppendReceipt`, `RecoveryReceipt`, `PartitionHandoffReceipt`, `RemovalReceipt`, and the ingress stage receipts each prove exactly one boundary.
-There is no universal receipt (ARCHITECTURE.md §The rails, 13).
+There is no universal receipt (../README.md §The rails, 13).
 
 ## Bounds and profiles
 
@@ -264,7 +264,7 @@ A profile selects coordinates inside the algebra declared here; it can never wid
 
 ## Crossings
 
-Each crossing is stated per ARCHITECTURE.md §No orphan by distribution: fact — owner — establishing operation — carrier — substitution refusal — chronology.
+Each crossing is stated per ../README.md §No orphan by distribution: fact — owner — establishing operation — carrier — substitution refusal — chronology.
 
 1. **Storage publication.** Fact: durable acceptance of admitted material.
   Owner: this home (contract); a qualified store realizes it.
@@ -288,13 +288,13 @@ Each crossing is stated per ARCHITECTURE.md §No orphan by distribution: fact �
   Operation: view advance or resolve at exact Cuts over this home's accepted history.
   Carrier: view surfaces.
   Refusal: no derived result becomes accepted history; disagreement means the derived result is wrong.
-  Chronology: carries ARCHITECTURE.md §The two lanes.
+  Chronology: carries ../README.md §The two lanes.
 5. **Checkpoint authority.** Fact: the right to skip completed logical work.
   Owner: runtime, in runtime-owned checkpoint authority regions.
   Operation: runtime checkpoint admission.
   Carrier: checkpoint references naming this home's Cuts.
   Refusal: checkpoint records reference domain Cuts but never inhabit or mutate domain regions; no cursor, chronology value, or wake advances one.
-  Chronology: owner-ruled 2026-08-24 (ARCHITECTURE.md §Checkpoints).
+  Chronology: owner-ruled 2026-08-24 (../README.md §Checkpoints).
 6. **Deadline enforcement.** Fact: remaining waiting or work allowance.
   Owner: runtime/Bvisor.
   Operation: deadline rebase and check.
@@ -312,7 +312,7 @@ Each crossing is stated per ARCHITECTURE.md §No orphan by distribution: fact �
   Operation: none — carriage only.
   Carrier: generated wrappers and host adapters.
   Refusal: a wrapper may carry a witness and may never mint or strengthen one.
-  Chronology: carries ARCHITECTURE.md §No orphan by distribution.
+  Chronology: carries ../README.md §No orphan by distribution.
 
 ## Nonclaims
 

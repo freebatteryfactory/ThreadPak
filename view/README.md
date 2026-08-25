@@ -8,7 +8,7 @@ No sentence here claims current implementation support.
 ## The wall
 
 Accepted history is not a derived view.
-That single separation is this owner's reason to exist, and it is the machine's honesty contract (carries: `ARCHITECTURE.md` — What owns fact; rail 1).
+That single separation is this owner's reason to exist, and it is the machine's honesty contract (carries: `../README.md` — What owns fact; rail 1).
 
 - Every resident of this owner — query results, Fixes, Views and their maintained ViewStates, subscriptions, temporal monitors, selection masks, materializations, DataBlocks — is **derived and rebuildable** from accepted history at exact Cuts.
 - No derived resident ever becomes authority.
@@ -34,12 +34,12 @@ That single separation is this owner's reason to exist, and it is the machine's 
 - **Selection** — `RowDomain` and `SelectionMask`: exact semantic membership, decided before expensive or protected work.
 - **Materialization family** — `Materialization` (named derived role), `MaterializationGeneration`, `DataBlock`, occurrence, and `AppliedCut`.
 - **Read-side authority declarations** — `ReadGrant` and `ProtectedResolutionGrant` are declared here.
-  Declaration seat is not minting authority: grants are installed by the host's authority machinery, never minted by any view operation (carries: `ARCHITECTURE.md` — Owners are not directories).
+  Declaration seat is not minting authority: grants are installed by the host's authority machinery, never minted by any view operation (carries: `../README.md` — Owners are not directories).
 - **Read-side bounds** — the owner-named limits listed under Bounds below.
 
 ## The two lanes live here
 
-(carries: `ARCHITECTURE.md` — The two lanes; rails 4, 12)
+(carries: `../README.md` — The two lanes; rails 4, 12)
 
 **Advance (push lane).** Prior derived state plus a bounded admitted delta yields the next derived state.
 Advance is shallow, bounded, recursion-free, and parallel-friendly, with declared work per event, no hidden whole-history traversal, and no unbounded fan-out.
@@ -72,7 +72,7 @@ The pull-lane operations consume the event owner's exact-read surface over accep
 
 ## Temporal claims
 
-(carries: `ARCHITECTURE.md` — rails 5, 6)
+(carries: `../README.md` — rails 5, 6)
 
 Three orthogonal axes, never one enum:
 
@@ -147,7 +147,7 @@ Reclamation waits for live readers and never rewrites historical evidence.
 
 **`AppliedCut`.** An AppliedCut states exactly which authoritative source Cuts a derived generation incorporated.
 It is never a storage snapshot identifier: new physical bytes do not imply a newer AppliedCut, and a newer AppliedCut requires proof that newer source Cuts were actually incorporated.
-`CommitPoint`, `AppliedCut`, and checkpoint remain three different facts (carries: `ARCHITECTURE.md` — What owns fact, Checkpoints).
+`CommitPoint`, `AppliedCut`, and checkpoint remain three different facts (carries: `../README.md` — What owns fact, Checkpoints).
 
 **Corruption law.** A corrupt derived artifact is discarded and rebuilt from accepted history.
 It is never reported as absence, and it never impersonates history.
@@ -155,7 +155,7 @@ A DataBlock describing itself proves neither source existence nor derivation cor
 
 ## Bounds owned here
 
-Plain owner-named limits; numeric values and paved profiles live in the depot (carries: `ARCHITECTURE.md` — Bounds).
+Plain owner-named limits; numeric values and paved profiles live in the depot (carries: `../README.md` — Bounds).
 
 ```text
 QueryRowLimit               Result
@@ -178,7 +178,7 @@ Each crossing is stated per the no-orphan rule: fact, owner, establishing operat
    Established by: event admission and Cut freezing.
    Carried here as: immutable inputs to every advance and resolve.
    Refusal: no view operation mints, advances, or amends any of them.
-   Chronology: carries `ARCHITECTURE.md` — What owns fact; rails 1, 3, 10.
+   Chronology: carries `../README.md` — What owns fact; rails 1, 3, 10.
 
 2. **Subscription checkpoints.**
    Fact: a subscriber's durable right to skip completed logical work.
@@ -186,7 +186,7 @@ Each crossing is stated per the no-orphan rule: fact, owner, establishing operat
    Established by: accepted checkpoint-advance admission.
    Carried here as: a reference a Subscription may hold.
    Refusal: no view type carries skip authority; a Cursor, a wake, or a delivered update never advances a checkpoint.
-   Chronology: carries `ARCHITECTURE.md` — Checkpoints (ruling of 2026-08-24).
+   Chronology: carries `../README.md` — Checkpoints (ruling of 2026-08-24).
 
 3. **Wake and live delivery.**
    Fact: awareness that work may exist.
@@ -194,7 +194,7 @@ Each crossing is stated per the no-orphan rule: fact, owner, establishing operat
    Established by: delivery mechanics.
    Carried here as: nothing — a wake is not a view resident and carries no result claim.
    Refusal: a lost wake loses no work; recovery is authenticated pull at exact Cuts plus checkpoint.
-   Chronology: carries `ARCHITECTURE.md` — rails 8, 9; The two lanes (three cases).
+   Chronology: carries `../README.md` — rails 8, 9; The two lanes (three cases).
 
 4. **Protected-payload resolution.**
    Fact: one protected extent physically resolved under authority.
@@ -208,7 +208,7 @@ Each crossing is stated per the no-orphan rule: fact, owner, establishing operat
    Fact: declared portable work consumed by advance and resolve.
    Owner: this owner declares its work dimensions; physical scheduling observations belong to runtime and mechanisms.
    Refusal: a stopwatch is never a semantic budget.
-   Chronology: carries `ARCHITECTURE.md` — rail 11.
+   Chronology: carries `../README.md` — rail 11.
 
 ## Hostile denominator
 

@@ -5,7 +5,7 @@
 This contract is product law for the Program owner and its co-seated Knowledge owner.
 It states what ThreadPak defines.
 No sentence here claims current implementation support.
-Root law: `ARCHITECTURE.md`.
+Root law: `../README.md`.
 
 ## Scope
 
@@ -97,7 +97,7 @@ A posture declaration performs nothing by itself.
 
 Well-founded recursion is lawful.
 It meets the external world in exactly two ways.
-(These are recursion roads, not the machine's two computational lanes — the divided highway of `ARCHITECTURE.md` is a different distinction.)
+(These are recursion roads, not the machine's two computational lanes — the divided highway of `../README.md` is a different distinction.)
 
 **Atomic planning — the paved road.** The recursion builds one bounded `EffectBatch` of effect proposals as data and crosses no external boundary while recursing.
 The complete batch is admitted afterward and executed later.
@@ -222,12 +222,12 @@ Each entry follows the no-orphan rule: fact, owner, establishing operation, carr
 |---|---|---|---|---|---|
 | What an admitted image computes next | runtime (PakVM) | VM stepping over `ExecutableProgramImage` plus an admitted invocation | `ExecutableProgramImage`, Program-minted | PakVM accepts only `ExecutableProgramImage`; private construction forbids unvalidated images; PakVM owns execution-state integrity, never image meaning | Carries owner ruling (2026-08-24, three-gate image law) |
 | Whether one invocation may run now | runtime and Bvisor | invocation admission: runtime binds Turn, inputs, Cuts, generation, semantic bounds, recovery posture; Bvisor binds grants, ports, reservations, clock domains, deadline, fresh Attempt | admission request referencing an `ExecutableProgramImage` | an executable image is not an admitted invocation | Carries owner ruling (2026-08-24, three-gate image law) |
-| External effect realization | runtime (REQUEST and PEND admission mint the durable `EffectIntent`), Bvisor, port | durable intent admission, fresh Attempt, typed port crossing | `EffectProposal` and `EffectBatch`, Program-declared | a proposal performs nothing; a Transition never executes or admits an effect | Derives from sync-first rail (`ARCHITECTURE.md`, "The rails" 8) |
+| External effect realization | runtime (REQUEST and PEND admission mint the durable `EffectIntent`), Bvisor, port | durable intent admission, fresh Attempt, typed port crossing | `EffectProposal` and `EffectBatch`, Program-declared | a proposal performs nothing; a Transition never executes or admits an effect | Derives from sync-first rail (`../README.md`, "The rails" 8) |
 | Domain-fact acceptance | event | the one event admission operation at an expected Cut | `EventProposal` (event-owned noun), carried in the Transition | a Transition proposes and never accepts; there is no second admission primitive anywhere | Carries owner ruling (2026-08-24, single-admission law) |
-| Derived inputs at exact Cuts | view | pull recomputation or push maintenance under the parity law | typed `DecisionInputs` binding view-owned Fix inputs, consumed by `decide` | a program reads explicit frozen inputs only; no ambient reads | Carries root law (`ARCHITECTURE.md`, "The two lanes") |
-| Application effect operations | port (grammar), application (declaration) | port contract declaration | typed port request and response families | the port grammar owns the boundary; no port family is declared inside this owner | Carries root law (`ARCHITECTURE.md`, "One machine") |
+| Derived inputs at exact Cuts | view | pull recomputation or push maintenance under the parity law | typed `DecisionInputs` binding view-owned Fix inputs, consumed by `decide` | a program reads explicit frozen inputs only; no ambient reads | Carries root law (`../README.md`, "The two lanes") |
+| Application effect operations | port (grammar), application (declaration) | port contract declaration | typed port request and response families | the port grammar owns the boundary; no port family is declared inside this owner | Carries root law (`../README.md`, "One machine") |
 | Evidence acquisition after Defer | runtime drives; port acquires; event admits | acquisition policy selects REQUEST or PEND; observation re-enters through ordinary admission at a new Cut | `EvidenceRequirement` value inside `Decision::Defer` | the requirement performs no effect and grants nothing | Carries owner ruling (2026-08-24, Knowledge seat) |
-| Generated realization | Macroonz (published toolchain dependency) | build-time generation of descriptors, plumbing, and harness pressure — including independent pressure on both Gate 1 roads | generated Rust and descriptors | Macroonz never owns meaning; every generated implementation is replaceable by hand-written Rust with identical ThreadPak meaning; no generated route both produces a material claim and its sole expected answer | Carries root law (`ARCHITECTURE.md`, "Owners are not directories") |
+| Generated realization | Macroonz (published toolchain dependency) | build-time generation of descriptors, plumbing, and harness pressure — including independent pressure on both Gate 1 roads | generated Rust and descriptors | Macroonz never owns meaning; every generated implementation is replaceable by hand-written Rust with identical ThreadPak meaning; no generated route both produces a material claim and its sole expected answer | Carries root law (`../README.md`, "Owners are not directories") |
 
 ## Refusal families
 

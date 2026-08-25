@@ -236,7 +236,7 @@ Owner: program.
 Establishing operation: the program owner's image gate, including its structurally independent lowering-agreement road.
 Carrier: the runtime passes the strengthened value; PakVM consumes it.
 Substitution refusal: an unvalidated or merely decoded image is unrepresentable as PakVM input, and no runtime or Bvisor admission re-decides image semantics.
-Chronology: carries the three-gate ruling of 2026-08-24; derives from ARCHITECTURE.md "Owners are not directories".
+Chronology: carries the three-gate ruling of 2026-08-24; derives from ../README.md "Owners are not directories".
 
 **Accepted history — AcceptedEvent, Cut, AuthoritySequence, authority regions.**
 Fact: what became accepted, where, in what exact order, through which durable cut.
@@ -244,7 +244,7 @@ Owner: event.
 Establishing operation: event admission and publication.
 Carrier: the runtime freezes Turn inputs at exact Cuts and its checkpoint records reference domain Cuts.
 Substitution refusal: the runtime never assigns order, never publishes domain events, and a checkpoint record never inhabits a domain region.
-Chronology: carries ARCHITECTURE.md "What owns fact" and "Checkpoints".
+Chronology: carries ../README.md "What owns fact" and "Checkpoints".
 
 **Subscription semantics and parity.**
 Fact: what one subscription means and that push-maintained results equal pull recomputation at the same Cut.
@@ -252,7 +252,7 @@ Owner: view.
 Establishing operation: view advancement and recomputation.
 Carrier: runtime delivery moves updates, wakes, credit, and checkpoints.
 Substitution refusal: delivery progress, wake receipt, and credit state never impersonate parity, completeness, or checkpoint advancement.
-Chronology: carries ARCHITECTURE.md rails 4 and 9.
+Chronology: carries ../README.md rails 4 and 9.
 
 **Port contracts and clock observations.**
 Fact: the typed boundary grammar for external operations and physical time.
@@ -260,14 +260,14 @@ Owner: port.
 Establishing operation: port contract declaration; host adapters realize it.
 Carrier: Bvisor binds requests to Attempts and validates responses; the deadline owner consumes admitted monotonic observations (the port owner's validated enclosures — raw readings never cross); wall observations belong to event chronology, not to this home.
 Substitution refusal: no ambient clock exists anywhere in this home, and a response satisfying different correctness coordinates refuses.
-Chronology: carries the role-specific clock-contract ruling of 2026-08-24; derives from ARCHITECTURE.md rail 8.
+Chronology: carries the role-specific clock-contract ruling of 2026-08-24; derives from ../README.md rail 8.
 
 **EffectProposal and EffectIntent.**
 Fact: one durably admitted intent to affect the outside world.
 Meaning owner: program — a transition produces the inert `EffectProposal` that declares the effect.
 Record owner: this home — REQUEST or PEND admission consumes the proposal and mints the durable `EffectIntent`, and this owner holds its publication contract and the outstanding relationship; Bvisor realizes it through fresh Attempts; reconciliation concludes it.
 Substitution refusal: a proposal is not an admitted intent; neither runtime nor Bvisor mints or edits effect *meaning*; an admitted intent survives any later semantic refusal.
-Chronology: carries ARCHITECTURE.md "What owns fact" and the effect proposal/admission split (owner-ruled 2026-08-24).
+Chronology: carries ../README.md "What owns fact" and the effect proposal/admission split (owner-ruled 2026-08-24).
 
 **Runtime record publication.**
 Fact: durable acceptance of this owner's records (admitted intents, checkpoint advances, sealed reports where required, reconciliation records).
