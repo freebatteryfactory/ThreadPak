@@ -1,6 +1,7 @@
 //! Event owner — thin semantic operation signatures.
 //!
-//! Declaration form: each operation is a function-type alias (`pub type NameFn = fn(...) -> ...;`), so this file is valid Rust and the dependency probe sees compiler-visible edges.
+//! Declaration form: each operation is authored as a Rust function-pointer type alias (`pub type NameFn = fn(...) -> ...;`) preserving the signature shape the operation must have.
+//! Foreign owner names stand unresolved in this fragment, so this file alone claims neither compilation nor resolved dependency edges; that evidence is the generated contract probe's to produce.
 //! No bodies — bodies land with their construction cuts, each pinned to its declared signature by a Macroonz-generated conformance assertion (`const _: AdmitEventFn = admit_event;`).
 //! Nothing in this file executes, and nothing here claims implementation support.
 //!
@@ -135,8 +136,7 @@ pub type RecoverPrefixFn = fn(
 ) -> Result<RecoveryReceipt, RecoveryRefusal>;
 
 // ---------------------------------------------------------------------------
-// Partition — admissions consume a grant scoped to their exact operation;
-// pure geometry and succession proofs consume evidence, never authority.
+// Partition — admissions consume a grant scoped to their exact operation; pure geometry and succession proofs consume evidence, never authority.
 // ---------------------------------------------------------------------------
 
 /// Operation `seal_region` — seal one region's writable epoch at an exact Cut.

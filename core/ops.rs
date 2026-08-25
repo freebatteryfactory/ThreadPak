@@ -1,6 +1,7 @@
 //! Core owner — thin semantic operation signatures.
 //!
-//! Declaration form: each operation is declared as a function-type alias (`NameFn`) so this file is valid Rust and the dependency probe sees compiler-visible edges — no bodies, no traits, no executor, no I/O.
+//! Declaration form: each operation is authored as a Rust function-pointer type alias (`NameFn`) preserving the signature shape the operation must have — no bodies, no traits, no executor, no I/O.
+//! Foreign owner names stand unresolved in this fragment, so this file alone claims neither compilation nor resolved dependency edges; that evidence is the generated contract probe's to produce.
 //! Each signature states inputs, outputs, refusals, and bounds.
 //! At the construction cuts the body lands as an ordinary `pub fn` of the declared name, and Macroonz generates the conformance assertion binding body to declaration (`const _: AdmitPreimageFn = admit_preimage;`).
 //!

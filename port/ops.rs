@@ -1,6 +1,7 @@
 //! Port owner — thin operation signatures.
 //!
-//! Declaration form: each operation is a function-type alias (`…Fn`) stating its exact inputs, outputs, refusal family, and bounds — valid Rust, so the dependency probe sees real compiler-visible edges.
+//! Declaration form: each operation is authored as a Rust function-pointer type alias (`…Fn`) stating its exact inputs, outputs, refusal family, and bounds, preserving the signature shape the operation must have.
+//! Foreign owner names stand unresolved in this fragment, so this file alone claims neither compilation nor resolved dependency edges; that evidence is the generated contract probe's to produce.
 //! Bodies land with the construction cuts; each body is checked against its alias by a Macroonz-generated conformance assertion (`const _: NameFn = name;`).
 //! Nothing here claims implementation support.
 //! The two observation contracts (`WallObservationPort`, `MonotonicObservationPort`) are trait-shaped and live in `types.rs` — they are real substitution seams, not convenience traits.

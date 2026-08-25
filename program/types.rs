@@ -3,7 +3,8 @@
 //! Declarations only: this file states the nouns of executable meaning and the co-seated Knowledge owner.
 //! Thin operation signatures live in `ops.rs`; construction laws are enforced by private fields and owner-module constructors when this owner is realized.
 //!
-//! Cross-owner names are written bare and resolve to their owning contracts when the dependency probe seats real imports: `Cut`, `FederationCut`, `SourceSet`, `SourceSetId`, `EventProposal`, `ReferenceFrameId`, `AcceptedEvent` (event); `PortFamilyId`, `PortOperationId`, `PortContractVersion`, `PortValueRole` (port); `ContinuationByteLimit`, `DeadlinePolicy` (runtime); `SchemaId`, `FieldId`, `BoundClass`, `Truth`, `Decision` (core).
+//! Cross-owner names are written bare and resolve to their owning contracts when the dependency probe seats real imports; each such name stays owned by its declaring contract.
+//! This file keeps no manual mirror of that graph — the generated contract probe derives the exhaustive foreign-reference inventory.
 //! `EventProposal` is the event owner's noun — this owner carries it, never declares it.
 //! The durable `EffectIntent` record is runtime-owned; this owner declares only the inert `EffectProposal` that admission strengthens.
 //! Where a field must agree with another field, neither field is public.
@@ -250,9 +251,8 @@ pub enum ImageComponentRole {
 // ---------------------------------------------------------------------------
 // Gate 1: the image-strengthening ladder
 //
-// Affine typestate: each stage consumes the prior value and returns the
-// stronger type or a typed refusal. Foreign bytes and locally built images
-// meet the same ladder; there is no local shortcut.
+// Affine typestate: each stage consumes the prior value and returns the stronger type or a typed refusal.
+// Foreign bytes and locally built images meet the same ladder; there is no local shortcut.
 // ---------------------------------------------------------------------------
 
 /// Bounded foreign image bytes as received — the only input the decode stage accepts.
@@ -697,9 +697,8 @@ pub struct DeclaredBounds {
 }
 
 // ---------------------------------------------------------------------------
-// Profiles — the owner-declared configuration algebra. The depot selects
-// exact rows inside these algebras; operations receive the selected row as
-// an explicit argument, never through any ambient lookup.
+// Profiles — the owner-declared configuration algebra.
+// The depot selects exact rows inside these algebras; operations receive the selected row as an explicit argument, never through any ambient lookup.
 // ---------------------------------------------------------------------------
 
 /// The evaluation profile one decide invocation runs under: the selected bound roster.
@@ -941,8 +940,8 @@ pub enum KnowledgeRefusal {
 }
 
 // ---------------------------------------------------------------------------
-// Refusal bodies — typed roles, no byte sacks. Refusal prose lives in the
-// depot keyed by refusal identity and adds no variant and no condition.
+// Refusal bodies — typed roles, no byte sacks.
+// Refusal prose lives in the depot keyed by refusal identity and adds no variant and no condition.
 // ---------------------------------------------------------------------------
 
 /// A declared input requirement unsatisfied at the frozen Cuts: which requirement, from which source.

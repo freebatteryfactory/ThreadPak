@@ -1,12 +1,13 @@
 //! Runtime owner — thin semantic operation signatures.
 //!
-//! Declaration form: each operation is declared as a function-type alias — valid Rust, so the dependency probe sees real compiler-visible edges — stating its exact inputs, outputs, refusal family, and consumed bounds.
+//! Declaration form: each operation is authored as a Rust function-pointer type alias stating its exact inputs, outputs, refusal family, and consumed bounds, preserving the signature shape the operation must have.
+//! Foreign owner names stand unresolved in this fragment, so this file alone claims neither compilation nor resolved dependency edges; that evidence is the generated contract probe's to produce.
 //! No bodies exist here and nothing claims implementation support: bodies land with construction cuts A5–A6, where Macroonz generates the conformance assertion (`const _: StitchFn = stitch;`) binding each realized operation to its declared alias.
 //!
 //! Depot law applies to every signature (`depot/README.md`, "Rows are passed, never fetched"): profiles and budgets arrive as explicit arguments; no operation reads an ambient registry, clock, or global context.
 //! Affine budgets are consumed by value and returned smaller.
 //!
-//! Foreign roles by owner: `EffectProposal`, `ImmediateResult`, `DecisionRefusal` (program); `ValidatedResponse`, `MonotonicObservation` (port).
+//! Foreign roles named in these signatures stay owned by their declaring contracts; this file keeps no manual mirror of that inventory, which the generated contract probe derives.
 
 // ---------------------------------------------------------------------------
 // Logical runtime
@@ -46,7 +47,7 @@ pub type RegisterWakeFn = fn(
 
 /// Operation `admit_effect_intent` — REQUEST/PEND admission: consume one program-produced proposal and mint the durable, runtime-owned intent plus its retry-discharging receipt.
 ///
-/// The profile carries the declared effect bounds and required idempotency posture; the live deadline is the rebased evidence `DeadlineAlreadyExpired` refuses against.
+/// The profile carries the declared effect bounds and required idempotency posture; the live deadline is the rebased evidence `EffectAdmissionRefusal::DeadlineAlreadyExpired` refuses against.
 /// The admitted record survives any later semantic refusal.
 /// The authorizing grant binding closes with the guard pass.
 pub type AdmitEffectIntentFn = fn(

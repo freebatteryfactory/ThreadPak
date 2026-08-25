@@ -1,7 +1,8 @@
 //! Program owner — thin semantic operation signatures.
 //!
-//! Signature declarations only, in valid Rust: each operation is declared as a function-type alias (`pub type NameFn = fn(...) -> ...;`) stating one lawful transformation — its exact inputs, its result, its refusal family, and the bounds it consumes.
-//! The alias form keeps this file a compilable declaration surface, so the dependency probe sees real compiler-visible edges.
+//! Signature declarations only: each operation is authored as a Rust function-pointer type alias (`pub type NameFn = fn(...) -> ...;`) stating one lawful transformation — its exact inputs, its result, its refusal family, and the bounds it consumes.
+//! The alias form preserves the signature shape the operation must have.
+//! Foreign owner names stand unresolved in this fragment, so this file alone claims neither compilation nor resolved dependency edges; that evidence is the generated contract probe's to produce.
 //! Bodies land with the construction cuts (A3 for this owner); each landing body is pinned to its declared signature by a Macroonz-generated conformance assertion (`const _: DecideFn = decide;`).
 //! Nothing here executes, and nothing claims implementation support.
 //!
@@ -33,10 +34,8 @@ pub type ProjectRequirementsFn = fn(program: &Program) -> RequirementsProjection
 // ---------------------------------------------------------------------------
 // Gate 1: lowering and the image-strengthening ladder
 //
-// One owner, two judgment roads: `lower` is the production road;
-// `check_lowering_agreement` is the independent road. They share the public
-// form declarations and the decoded immutable inputs, and never share
-// lowering dispatch, reconstruction, or the verdict predicate.
+// One owner, two judgment roads: `lower` is the production road; `check_lowering_agreement` is the independent road.
+// They share the public form declarations and the decoded immutable inputs, and never share lowering dispatch, reconstruction, or the verdict predicate.
 // ---------------------------------------------------------------------------
 
 /// Operation `validate_semantic_form`.

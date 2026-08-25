@@ -2,7 +2,8 @@
 //!
 //! Declarations only.
 //! Operations are declared in `ops.rs` beside this file; no behavior is defined here.
-//! Crossing types named in field positions — `EventProposals`, `EffectProposal`, `ProgramImageId`, `ImmediateResult`, `DecisionRefusal`, `ConsumedSemanticWork`, `Explanation` (program), `Cut`, `SourceSet`, `AcceptedEvent` (event), `SubscriptionId` (view), `PortRequestId`, `ValidatedResponse`, `RecoveryContract`, `ClockDomainId`, `MonotonicObservation`, `PortResponseByteLimit` (port), `BoundClass` (core) — are foreign-owned; their declarations live with their owners and resolve by import when the dependency probe seats the homes.
+//! Crossing types named in field positions are foreign-owned: their declarations live with their owners and resolve by import when the dependency probe seats the homes.
+//! This file keeps no manual mirror of that inventory — the generated contract probe derives it.
 //! Bare names, no `crate::` paths, until the probe exists.
 //!
 //! Every field here is private, and every field is a correctness-bearing relationship the owner contract promises.
@@ -1008,9 +1009,7 @@ pub struct PortRequestLimit {
     limit: NonZeroU32,
 }
 
-// The response byte ceiling is the port owner's `PortResponseByteLimit` —
-// its declaration seat is the port contract; this owner consumes it inside
-// response binding and declares no twin.
+// The response byte ceiling is the port owner's `PortResponseByteLimit` — its declaration seat is the port contract; this owner consumes it inside response binding and declares no twin.
 
 /// Identity of one admitted absolute-deadline commitment, so a carried allowance at the port boundary can name exactly which commitment it derives from.
 pub struct AbsoluteDeadlineId {
@@ -1028,9 +1027,8 @@ pub struct AbsoluteDeadline {
 }
 
 // ---------------------------------------------------------------------------
-// Profiles — the lawful configuration algebras this owner declares. Depot
-// rows select coordinates inside them; operations receive the selected row
-// as an explicit argument, never through an ambient lookup.
+// Profiles — the lawful configuration algebras this owner declares.
+// Depot rows select coordinates inside them; operations receive the selected row as an explicit argument, never through an ambient lookup.
 // ---------------------------------------------------------------------------
 
 /// The declared algebra of one driver profile: who drives, when driving is required, the pump work allowance, runnable-lane fairness posture, starvation posture, wake registration and lost-wakeup prevention, spurious-wake and coalescing handling, reentrancy posture, callback custody, close/drain/shutdown/restart selections, panic containment selection, and which liveness claim becomes unavailable when the host stops driving.

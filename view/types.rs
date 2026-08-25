@@ -223,7 +223,7 @@ pub struct ViewAdvance {
 
 /// The semantic relationship between one consumer and one `View`, with a bounded retained window.
 ///
-/// A subscription binds the definition, never tonight's `ViewState` (owner ruling 2026-08-24).
+/// A subscription binds the definition, never a maintained `ViewState` (owner ruling 2026-08-24).
 /// A subscription's durable skip authority is its runtime-owned checkpoint; a delivered update, a wake, and a retained window are never progress.
 pub struct Subscription {
     /// The identity the runtime owner keys this subscription's durable checkpoint by (`CheckpointSubject::Subscription`, runtime-owned).
@@ -453,8 +453,8 @@ pub struct TemporalHorizon {
 pub struct SubscriptionWindowLimit(NonZeroU32);
 
 // ---------------------------------------------------------------------------
-// Profiles — this owner's configuration algebra. Selected values are
-// depot/view.md rows; operations receive the exact profile as an argument.
+// Profiles — this owner's configuration algebra.
+// Selected values are depot/view.md rows; operations receive the exact profile as an argument.
 // ---------------------------------------------------------------------------
 
 /// The selected bounds and work posture of the push lane's advance.
@@ -462,7 +462,7 @@ pub struct ViewAdvanceProfile {
     /* declared per-event work formula binding and advance bounds; rows in depot/view.md */
 }
 
-/// The selected bounds of one pull-lane resolve: row ceiling, traversal depth, fan-out, and the work-budget denomination budgets are minted from.
+/// The selected bounds of one pull-lane resolve: row ceiling, traversal depth, fan-out, and the work denomination from which invocation budgets are minted.
 pub struct ViewResolveProfile {
     rows: QueryRowLimit,
     depth: NavigationDepth,
@@ -494,9 +494,8 @@ pub enum SelectionRepresentation {
 }
 
 // ---------------------------------------------------------------------------
-// Refusals (role-specific; never one mega-error). Every refusal carries the
-// violated law, the typed owner, the offending value's role, and the repair
-// direction; the payload bodies close with the guard pass.
+// Refusals (role-specific; never one mega-error).
+// Every refusal carries the violated law, the typed owner, the offending value's role, and the repair direction; the payload bodies close with the guard pass.
 // ---------------------------------------------------------------------------
 
 /// Refusals of the pull lane.

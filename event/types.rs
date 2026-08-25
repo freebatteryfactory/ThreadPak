@@ -1003,11 +1003,10 @@ pub enum IngressRefusal {
 }
 
 // ---------------------------------------------------------------------------
-// Bounds — owner-local limits. Numeric values and paved profiles live in the
-// depot. None of these is affine; each is a plain declared limit consumed by
-// the operation that names it. (`RecoveryScanBudget` and the reservation
-// work budgets become affine only if duplication could fabricate capacity —
-// decided at the guard pass, per bound.)
+// Bounds — owner-local limits.
+// Numeric values and paved profiles live in the depot.
+// None of these is affine; each is a plain declared limit consumed by the operation that names it.
+// (`RecoveryScanBudget` and the reservation work budgets become affine only if duplication could fabricate capacity — decided at the guard pass, per bound.)
 // ---------------------------------------------------------------------------
 
 /// Maximum canonical bytes of one event.
@@ -1069,11 +1068,9 @@ pub struct ActiveReservationAgeLimit {
 pub struct ConflictEvidenceLimit(NonZeroU32);
 
 // ---------------------------------------------------------------------------
-// Profiles — this owner's configuration algebra. A profile is a typed bundle
-// of the owner's selectable facts; operations receive the exact profile as an
-// explicit argument, selected values are depot rows (depot/event.md), and no
-// operation fetches a profile ambiently. A profile selects coordinates inside
-// the algebra declared here; it can never widen it.
+// Profiles — this owner's configuration algebra.
+// A profile is a typed bundle of the owner's selectable facts; operations receive the exact profile as an explicit argument, selected values are depot rows (depot/event.md), and no operation fetches a profile ambiently.
+// A profile selects coordinates inside the algebra declared here; it can never widen it.
 // ---------------------------------------------------------------------------
 
 /// The admission profile: the bounds one event admission runs under.

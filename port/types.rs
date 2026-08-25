@@ -167,7 +167,7 @@ pub struct CompensationRoute {
 pub enum ReplaySafety {
     /// Duplicates are tolerated by external semantics; reconciliation deduplicates by declared identity.
     AtLeastOnceTolerated,
-    /// A duplicate physical execution is unlawful; retry requires the same-key or outcome-query route, or remains `OutcomeUnknown`.
+    /// A duplicate physical execution is unlawful; retry requires the same-key or outcome-query route, or leaves outcome knowledge unresolved.
     Nonreplayable,
 }
 
@@ -550,9 +550,8 @@ pub struct QuarantineReceipt {
 }
 
 // ---------------------------------------------------------------------------
-// Profiles — the owner's configuration algebra. Selected values live in
-// depot/port.md and are passed into operations explicitly; no operation
-// reaches into an ambient registry.
+// Profiles — the owner's configuration algebra.
+// Selected values live in depot/port.md and are passed into operations explicitly; no operation reaches into an ambient registry.
 // ---------------------------------------------------------------------------
 
 /// The admitted ceilings a family declaration's bounds must fit — the profile `PortContractRefusal::BoundOutOfProfile` checks against.

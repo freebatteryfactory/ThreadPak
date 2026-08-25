@@ -44,10 +44,8 @@ pub enum Decision<Demand> {
 // ---------------------------------------------------------------------------
 // refusal — anatomy machinery
 //
-// The four-carry law (violated law, typed owner, offending value's role,
-// repair direction) and the three body shapes remain family law realized
-// per owner — deliberately no universal refusal type. What the consumers
-// force here is the identity that keys depot refusal prose.
+// The four-carry law (violated law, typed owner, offending value's role, repair direction) and the three body shapes remain family law realized per owner — deliberately no universal refusal type.
+// What the consumers force here is the identity that keys depot refusal prose.
 // ---------------------------------------------------------------------------
 
 /// Identity of one refusal variant, keying the depot's refusal-prose rows.
@@ -59,8 +57,7 @@ pub struct RefusalId {
 }
 
 // ---------------------------------------------------------------------------
-// bound — the closed class register, the dimension row shape, and the
-// shared affine mechanic
+// bound — the closed class register, the dimension row shape, and the shared affine mechanic
 // ---------------------------------------------------------------------------
 
 /// The settled closed register of bound classes.
@@ -171,9 +168,8 @@ pub struct BudgetExhausted<D> {
 // ---------------------------------------------------------------------------
 // number-adjacent shared time value roles
 //
-// Chronology is the event owner's; deadlines are the runtime owner's;
-// physical observations are the port owner's. These are the shared value
-// roles those owners refuse to conflate.
+// Chronology is the event owner's; deadlines are the runtime owner's; physical observations are the port owner's.
+// These are the shared value roles those owners refuse to conflate.
 // ---------------------------------------------------------------------------
 
 /// A signed difference between two time values in one clock domain.
@@ -187,12 +183,8 @@ pub struct TimeDelta {
     magnitude: i128,
 }
 
-// Unsigned spans are `core::time::Duration` (owner ruling 2026-08-24,
-// stdlib-batteries applied): a type is not contaminated by a method
-// (`saturating_sub`) semantic code never calls — ThreadPak semantic
-// operations use only checked operations on it. Owner-specific Time-class
-// wrappers (horizons, ceilings, allowances) keep their roles at their
-// owners; no custom generic span type exists here.
+// Unsigned spans are `core::time::Duration` (owner ruling 2026-08-24, stdlib-batteries applied): a type is not contaminated by a method (`saturating_sub`) semantic code never calls — ThreadPak semantic operations use only checked operations on it.
+// Owner-specific Time-class wrappers (horizons, ceilings, allowances) keep their roles at their owners; no custom generic span type exists here.
 
 // ---------------------------------------------------------------------------
 // schema — commitment identities and the shape laws with carriers

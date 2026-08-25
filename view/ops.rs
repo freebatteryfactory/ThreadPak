@@ -1,7 +1,8 @@
 //! # view — thin operation signatures
 //!
 //! Semantic signatures only: exact inputs, outputs, refusals, and bounds.
-//! Each operation is declared as a function-type alias (`…Fn`) so this file is valid Rust and the dependency probe sees compiler-visible edges — no bodies exist here, nothing executes, and nothing claims implementation support.
+//! Each operation is authored as a Rust function-pointer type alias (`…Fn`) preserving the signature shape the operation must have — no bodies exist here, nothing executes, and nothing claims implementation support.
+//! Foreign owner names stand unresolved in this fragment, so this file alone claims neither compilation nor resolved dependency edges; that evidence is the generated contract probe's to produce.
 //! Realization lands with construction cut A2, where each operation's implementation is pinned to its declared signature by a Macroonz-generated conformance assertion (`const _: ResolveFn<…> = resolve;` shape); exact Rust ergonomics may still be machined at the guard pass without changing any contract stated here.
 //!
 //! Every operation receives its profile and bounds as explicit typed arguments — no operation reads a depot row, a clock, an environment, or any ambient state (`depot/README.md`, "Rows are passed, never fetched").
@@ -160,12 +161,9 @@ pub type ConvertSelectionFn = fn(
 ) -> Result<SelectionMask, SelectionRefusal>;
 
 // ---------------------------------------------------------------------------
-// Materialization lifecycle — eight separate operations by law. Stage
-// strengthening becomes typestate at realization (the standing roster is a
-// recorded realization seam; whether persisted/foreign lifecycle state
-// crosses back in as validated dynamic state or in-process affine typestate
-// is part of that same recorded seam, closing at A2). The semantic
-// distinctions are fixed here.
+// Materialization lifecycle — eight separate operations by law.
+// Stage strengthening becomes typestate at realization (the standing roster is a recorded realization seam; whether persisted/foreign lifecycle state crosses back in as validated dynamic state or in-process affine typestate is part of that same recorded seam, closing at A2).
+// The semantic distinctions are fixed here.
 // ---------------------------------------------------------------------------
 
 /// `derive_materialization` — pure derivation of one generation's content from accepted history at exact Cuts.
