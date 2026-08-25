@@ -79,7 +79,7 @@ Per the no-orphan rule (fact / owner / operation / carrier / refusal / chronolog
 
 ## Operations
 
-The thin signatures live in `ops.rs` as function-type aliases (valid Rust; bodies land at the construction cuts with Macroonz conformance assertions): `declare_contract` (declaration → admitted contract), `validate_request` (pre-flight → dispatchable request; judged against the current admitted monotonic observation), `validate_response` (foreign material → validated response; duplicate-delivery and deadline evidence passed in), `seal_late_response` (authentic-but-dead material → reconciliation evidence, judged against the admitted contract), `admit_wall_observation` and `admit_monotonic_observation` (raw observation → admitted enclosure), `quarantine_store` (disposition → custody receipt), plus the two observation traits in `types.rs`.
+The thin signatures live in `ops.rs` as function-type aliases (authored signature contracts, not resolved compiler evidence; bodies land at the construction cuts with Macroonz conformance assertions): `declare_contract` (declaration → admitted contract), `validate_request` (pre-flight → dispatchable request; judged against the current admitted monotonic observation), `validate_response` (foreign material → validated response; duplicate-delivery and deadline evidence passed in), `seal_late_response` (authentic-but-dead material → reconciliation evidence, judged against the admitted contract), `admit_wall_observation` and `admit_monotonic_observation` (raw observation → admitted enclosure), `quarantine_store` (disposition → custody receipt), plus the two observation traits in `types.rs`.
 Every operation receives its exact profile as an argument — no ambient registry, no god-context.
 
 ## Bounds
